@@ -1,0 +1,22 @@
+# Node
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+dist
+build
+.cache
+
+# Env & local
+.env
+.env.*
+.DS_Store
+
+# Uploads / previews (to be used later)
+uploads/
+previews/
+
+# Editor
+.vscode/
+.idea/
