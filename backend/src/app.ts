@@ -6,6 +6,7 @@ import health from "@/routes/health";
 import auth from "@/routes/auth";
 import documents from "@/routes/documents";
 import { errorHandler, notFound } from "@/middleware/errorHandler";
+import mountSearch from "@/routes/search";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(morgan("dev"));
 app.use("/health", health);
 app.use("/auth", auth);
 app.use("/documents", documents);
+mountSearch(app);
 
 // 404 + error handler
 app.use(notFound);
