@@ -12,10 +12,20 @@
     "prepare": "git config core.autocrlf input || true"
   },
   "dependencies": {
-    "jsonwebtoken": "^9.0.2"
+    "bcrypt": "^6.0.0",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "pdfjs-dist": "^5.4.296",
+    "pg": "^8.16.3",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.10",
-    "@vitejs/plugin-react": "^5.0.4"
+    "@types/node": "^24.7.1",
+    "@vitejs/plugin-react": "^5.0.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }
