@@ -12,9 +12,13 @@
     "prepare": "git config core.autocrlf input || true"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
+    "@heroicons/react": "^2.2.0",
     "bcrypt": "^6.0.0",
+    "clsx": "^2.1.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "motion": "^12.23.22",
     "pdfjs-dist": "^5.4.296",
     "pg": "^8.16.3",
     "zod": "^4.1.12"
@@ -25,6 +29,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.7.1",
     "@vitejs/plugin-react": "^5.0.4",
+    "tailwindcss": "^4.1.14",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
