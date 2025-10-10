@@ -10,7 +10,7 @@
   },
   "scripts": {
     "prepare": "git config core.autocrlf input || true",
-    "build": "npm --prefix frontend ci && npm --prefix frontend run build && npm --prefix backend ci && npm --prefix backend run build && node -e \"fs=require('fs');p='backend/dist/public';fs.mkdirSync(p,{recursive:true});fs.cpSync('frontend/dist',p,{recursive:true});\"",
+    "build": "npm --prefix frontend install --include=dev --no-audit --no-fund && npm --prefix frontend run build && npm --prefix backend install --include=dev --no-audit --no-fund && npm --prefix backend run build && node -e \"fs=require('fs');p='backend/dist/public';fs.mkdirSync(p,{recursive:true});fs.cpSync('frontend/dist',p,{recursive:true});\"",
     "start": "node backend/dist/server.js"
   },
   "dependencies": {
