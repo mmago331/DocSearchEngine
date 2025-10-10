@@ -3,8 +3,8 @@
   "private": true,
   "engines": { "node": ">=18" },
   "scripts": {
-    "postinstall": "npm --prefix backend install",
-    "build": "npm --prefix backend run build",
-    "start": "npm --prefix backend run start"
+    "build": "npm --prefix backend ci && npm --prefix frontend ci && npm --prefix backend run build && npm --prefix frontend run build && node ./scripts/move-ui.mjs",
+    "start": "node backend/dist/server.js",
+    "postinstall": "npm --prefix backend install && npm --prefix frontend install"
   }
 }
