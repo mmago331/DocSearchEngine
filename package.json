@@ -1,10 +1,13 @@
 {
   "name": "docsearchengine",
   "private": true,
-  "engines": { "node": ">=18" },
+  "workspaces": ["frontend", "backend"],
+  "engines": {
+    "node": ">=18.17"
+  },
   "scripts": {
-    "postinstall": "npm --prefix backend install",
-    "build": "npm --prefix backend run build",
-    "start": "npm --prefix backend run start"
+    "prepare": "git config core.autocrlf input || true",
+    "build": "npm --prefix backend ci && npm --prefix backend run build",
+    "start": "node backend/dist/server.js"
   }
 }
