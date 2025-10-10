@@ -4,7 +4,7 @@ export function Protected({ children }: { children: JSX.Element }) {
   return token ? children : <Navigate to="/login" replace />;
 }
 export function AdminOnly({ children }: { children: JSX.Element }) {
-  // TODO: swap with a real role check from /auth/me when roles exist
+  // TODO: replace with real role check (e.g., /auth/me) when roles exist
   const token = localStorage.getItem("token");
   return token ? children : <Navigate to="/login" replace />;
 }

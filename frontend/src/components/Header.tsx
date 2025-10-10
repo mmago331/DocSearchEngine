@@ -7,10 +7,7 @@ export default function Header() {
   const nav = useNavigate();
   const authed = !!localStorage.getItem("token");
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    nav("/login");
-  };
+  const logout = () => { localStorage.removeItem("token"); nav("/login"); };
 
   const NavItem = ({ to, children }: any) => (
     <NavLink
@@ -29,7 +26,7 @@ export default function Header() {
   return (
     <header className="border-b bg-white">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
-        <button className="lg:hidden rounded-md p-2 hover:bg-gray-100" onClick={() => setOpen((v) => !v)}>
+        <button className="lg:hidden rounded-md p-2 hover:bg-gray-100" onClick={() => setOpen(v => !v)}>
           <Bars3Icon className="h-5 w-5" />
         </button>
         <Link to="/" className="text-lg font-semibold text-indigo-700">DocSearchEngine</Link>
@@ -39,12 +36,8 @@ export default function Header() {
           <NavItem to="/explore">Explore</NavItem>
           <NavItem to="/admin">Admin</NavItem>
         </nav>
-        <div className="ml-auto flex items-center gap-2">
-          {authed ? (
-            <button className="btn-ghost" onClick={logout}>Logout</button>
-          ) : (
-            <Link to="/login" className="btn-ghost">Login</Link>
-          )}
+        <div className="ml-auto">
+          {authed ? <button className="btn-ghost" onClick={logout}>Logout</button> : <Link className="btn-ghost" to="/login">Login</Link>}
         </div>
       </div>
       {open && (

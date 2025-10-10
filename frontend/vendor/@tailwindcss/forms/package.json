@@ -1,0 +1,6 @@
+{
+  "name": "@tailwindcss/forms",
+  "version": "0.0.0-local",
+  "main": "index.js",
+  "type": "module"
+}
