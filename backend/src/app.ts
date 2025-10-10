@@ -5,24 +5,25 @@ import morgan from "morgan";
 import health from "@/routes/health";
 import auth from "@/routes/auth";
 import documents from "@/routes/documents";
-import mountSearch from "@/routes/search";
+// import search route as you implemented it:
+import mountSearch from "@/routes/search"; // if your search exports a mount() fn
 import { errorHandler, notFound } from "@/middleware/errorHandler";
 
-export default function createApp() {
-  const app = express();
+const app = express();
 
-  app.use(helmet());
-  app.use(cors({ origin: ["http://localhost:5173"], credentials: true }));
-  app.use(express.json({ limit: "2mb" }));
-  app.use(morgan("dev"));
+app.use(helmet());
+app.use(cors({ origin: ["http://localhost:5173"], credentials: true }));
+app.use(express.json({ limit: "2mb" }));
+app.use(morgan("dev"));
 
-  app.use("/health", health);
-  app.use("/auth", auth);
-  app.use("/documents", documents);
-  mountSearch(app);
+app.use("/health", health);
+app.use("/auth", auth);
+app.use("/documents", documents);
 
-  app.use(notFound);
-  app.use(errorHandler);
+// If your search route exports a router instead, do: app.use("/api/search", searchRouter);
+mountSearch(app);
 
-  return app;
-}
+app.use(notFound);
+app.use(errorHandler);
+
+export default app;

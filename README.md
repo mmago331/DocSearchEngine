@@ -51,15 +51,6 @@ DocSearchEngine is a full-stack PDF ingestion and semantic search platform. User
    ```
    Vite serves the app at `http://localhost:5173`.
 
-For a production-style bundle that serves the compiled UI and API from a single Express server, run:
-
-```bash
-npm run build
-npm start
-```
-
-The build orchestrates both workspaces, moves the Vite output into `backend/dist/public`, and `npm start` launches the backend server from the compiled artifacts.
-
 Once both services are running, register a new account in the UI, upload PDF documents, and try searching for phrases to see highlighted results from the indexed pages.
 
 ## Project structure
