@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "@/lib/api";
+import { Button, Input, Card, CardBody } from "@/ui/primitives";
 
 export default function Login() {
   const nav = useNavigate();
@@ -17,16 +18,18 @@ export default function Login() {
 
   return (
     <div className="mx-auto mt-16 max-w-md">
-      <div className="card"><div className="card-body">
-        <h1 className="mb-4 text-xl font-semibold">Login</h1>
-        <form onSubmit={submit} className="grid gap-3">
-          <input className="input" placeholder="email" value={email} onChange={e => setEmail(e.target.value)} />
-          <input className="input" type="password" placeholder="password" value={password} onChange={e => setPassword(e.target.value)} />
-          <button className="btn" type="submit">Login</button>
-          {err && <p className="text-sm text-red-600">{err}</p>}
-          <p className="text-sm text-gray-600">No account? <Link to="/register" className="text-indigo-600">Register</Link></p>
-        </form>
-      </div></div>
+      <Card>
+        <CardBody>
+          <h1 className="mb-4 text-xl font-semibold">Login</h1>
+          <form onSubmit={submit} className="grid gap-3">
+            <Input placeholder="email" value={email} onChange={e => setEmail(e.target.value)} />
+            <Input type="password" placeholder="password" value={password} onChange={e => setPassword(e.target.value)} />
+            <Button type="submit">Login</Button>
+            {err && <p className="text-sm text-red-600">{err}</p>}
+            <p className="text-sm text-gray-600">No account? <Link to="/register" className="text-indigo-600">Register</Link></p>
+          </form>
+        </CardBody>
+      </Card>
     </div>
   );
 }

@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
+import { Card, CardBody, Table, Th, Td, Button, Badge } from "@/ui/primitives";
+import { useToast } from "@/ui/toast";
 
 export default function AdminDocuments() {
   const [docs, setDocs] = useState<any[]>([]);
+  const { push } = useToast();
+
   const load = async () => {
     const { data } = await api.get("/documents"); // replace with admin-only endpoint later
     setDocs(data.documents || []);
@@ -11,29 +15,36 @@ export default function AdminDocuments() {
   return (
     <div>
       <h1 className="mb-4 text-2xl font-semibold">Documents</h1>
-      <div className="card"><div className="card-body overflow-x-auto">
-        <table className="table">
-          <thead><tr>
-            <th className="th">Title</th><th className="th">Owner</th><th className="th">Pages</th><th className="th">Visibility</th><th className="th"></th>
-          </tr></thead>
-          <tbody>
-            {docs.map((d: any) => (
-              <tr key={d.id} className="border-t">
-                <td className="td">{d.title || d.original_filename || "(untitled)"}</td>
-                <td className="td text-gray-600">(you)</td>
-                <td className="td">{d.pages_count || 0}</td>
-                <td className="td">{d.is_public ? "Public" : "Private"}</td>
-                <td className="td">
-                  <button className="btn-ghost" onClick={async () => { await api.delete(`/documents/${d.id}`); await load(); }}>
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {docs.length === 0 && <tr><td className="td" colSpan={5}>No documents found.</td></tr>}
-          </tbody>
-        </table>
-      </div></div>
+      <Card>
+        <CardBody className="overflow-x-auto">
+          <Table>
+            <thead><tr><Th>Title</Th><Th>Owner</Th><Th>Pages</Th><Th>Visibility</Th><Th /></tr></thead>
+            <tbody>
+              {docs.map((d: any) => (
+                <tr key={d.id} className="border-t">
+                  <Td>{d.title || d.original_filename || "(untitled)"}</Td>
+                  <Td className="text-gray-600">(you)</Td>
+                  <Td>{d.pages_count || 0}</Td>
+                  <Td>{d.is_public ? <Badge>Public</Badge> : <Badge>Private</Badge>}</Td>
+                  <Td>
+                    <Button
+                      variant="ghost"
+                      onClick={async () => {
+                        await api.delete(`/documents/${d.id}`);
+                        await load();
+                        push({ text: "Deleted", tone: "success" });
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </Td>
+                </tr>
+              ))}
+              {docs.length === 0 && <tr><Td colSpan={5}>No documents found.</Td></tr>}
+            </tbody>
+          </Table>
+        </CardBody>
+      </Card>
     </div>
   );
 }
