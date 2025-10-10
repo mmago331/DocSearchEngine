@@ -1,17 +1,12 @@
-// backend/src/lib/pdf.ts
-import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
+/* Extract plain text per page using pdfjs-dist (Node). */
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.js";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const worker = require("pdfjs-dist/legacy/build/pdf.worker.js");
+(pdfjsLib as any).GlobalWorkerOptions.workerSrc = worker;
 
-/**
- * Extract plain text from a PDF buffer, 1 string per page.
- * Works in Node; no worker needed.
- */
 export async function extractTextPerPage(pdfBuffer: Buffer): Promise<string[]> {
-  // In Node we don't need a separate worker file
-  (GlobalWorkerOptions as any).workerSrc = undefined;
-
-  const loadingTask = getDocument({ data: pdfBuffer, useSystemFonts: true });
+  const loadingTask = (pdfjsLib as any).getDocument({ data: pdfBuffer, useSystemFonts: true });
   const pdf = await loadingTask.promise;
-
   const pages: string[] = [];
   try {
     for (let i = 1; i <= pdf.numPages; i++) {
@@ -19,9 +14,8 @@ export async function extractTextPerPage(pdfBuffer: Buffer): Promise<string[]> {
       const content = await page.getTextContent();
       const text = content.items
         .map((item: any) => (typeof item?.str === "string" ? item.str : ""))
-        .join(" ")
-        .trim();
-      pages.push(text);
+        .join(" ");
+      pages.push(text.trim());
       page.cleanup?.();
     }
   } finally {
@@ -30,7 +24,6 @@ export async function extractTextPerPage(pdfBuffer: Buffer): Promise<string[]> {
   return pages;
 }
 
-/** Quick check for "%PDF-" header. */
 export function looksLikePdf(buf: Buffer): boolean {
   if (buf.length < 5) return false;
   return buf.slice(0, 5).toString() === "%PDF-";
