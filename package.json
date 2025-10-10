@@ -6,10 +6,12 @@
     "backend"
   ],
   "engines": {
-    "node": ">=18.17"
+    "node": ">=20"
   },
   "scripts": {
-    "prepare": "git config core.autocrlf input || true"
+    "prepare": "git config core.autocrlf input || true",
+    "build": "npm --prefix frontend ci && npm --prefix frontend run build && npm --prefix backend ci && npm --prefix backend run build && node -e \"fs=require('fs');p='backend/dist/public';fs.mkdirSync(p,{recursive:true});fs.cpSync('frontend/dist',p,{recursive:true});\"",
+    "start": "node backend/dist/server.js"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",

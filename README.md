@@ -14,7 +14,7 @@ DocSearchEngine is a full-stack PDF ingestion and semantic search platform. User
 - **Infrastructure:** PostgreSQL 16 (via Docker Compose), PDF parsing with `pdfjs-dist`, shared types published through a `shared/` workspace.
 
 ## Prerequisites
-- Node.js **18.17+** and npm **9+** (workspace-aware commands are used throughout the repo).
+- Node.js **20+** and npm **9+** (workspace-aware commands are used throughout the repo).
 - Docker (optional but recommended) to launch the local PostgreSQL instance with `docker compose`.
 
 ## Getting started
@@ -65,11 +65,16 @@ Once both services are running, register a new account in the UI, upload PDF doc
 
 ### Backend scripts
 Run any workspace script with `npm run <name> --workspace backend`:
+- `ci` – install dependencies in CI environments with a clean `node_modules`.
 - `dev` – start the API in watch mode (tsx).
-- `build` – compile to `dist/` and copy migrations.
+- `build` – compile to `dist/`, rewrite path aliases, and copy migrations.
 - `start` – run the compiled server.
 - `typecheck` – TypeScript type checking without emitting output.
 - `migrate:up` / `migrate:down` – apply or roll back database migrations.
+
+### Root scripts
+- `npm run build` – build the frontend and backend, then copy the bundled UI into `backend/dist/public` for deployment.
+- `npm start` – run the compiled backend (serves both the API and built frontend).
 
 ### Frontend scripts
 Run with `npm run <name> --workspace frontend`:
