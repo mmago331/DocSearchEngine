@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
+import { Card, CardBody } from "@/ui/primitives";
 
 export default function Dashboard() {
   const [db, setDb] = useState<string>("…");
@@ -8,14 +9,18 @@ export default function Dashboard() {
   }, []);
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <div className="card"><div className="card-body">
-        <div className="text-sm text-gray-600">Database</div>
-        <div className="mt-1 text-xl font-semibold">{db}</div>
-      </div></div>
-      <div className="card"><div className="card-body">
-        <div className="text-sm text-gray-600">Status</div>
-        <div className="mt-1 text-xl font-semibold">Healthy</div>
-      </div></div>
+      <Card>
+        <CardBody>
+          <div className="text-sm text-gray-600">Database</div>
+          <div className="mt-1 text-xl font-semibold">{db}</div>
+        </CardBody>
+      </Card>
+      <Card>
+        <CardBody>
+          <div className="text-sm text-gray-600">Status</div>
+          <div className="mt-1 text-xl font-semibold">Healthy</div>
+        </CardBody>
+      </Card>
     </div>
   );
 }
