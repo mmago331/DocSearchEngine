@@ -24,7 +24,6 @@ export async function extractTextPerPage(pdfBuffer: Buffer): Promise<string[]> {
   return pages;
 }
 
-/** Quick magic-number check for "%PDF-" header. */
 export function looksLikePdf(buf: Buffer): boolean {
   if (buf.length < 5) return false;
   return buf.slice(0, 5).toString() === "%PDF-";
