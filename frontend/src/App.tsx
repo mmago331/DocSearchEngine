@@ -6,6 +6,7 @@ import Library from "@/pages/Library";
 import Explore from "@/pages/Explore";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import DocumentPage from "@/pages/DocumentPage";
 import Dashboard from "@/pages/admin/Dashboard";
 import AdminDocuments from "@/pages/admin/Documents";
 
@@ -15,6 +16,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/library" element={<Protected><Library /></Protected>} />
+        <Route path="/documents/:id" element={<Protected><DocumentPage /></Protected>} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
