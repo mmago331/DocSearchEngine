@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
+import type { AxiosResponse } from "axios";
 import api from "@/lib/api";
 import { Card, CardBody } from "@/ui/primitives";
 
 export default function Dashboard() {
   const [db, setDb] = useState<string>("…");
   useEffect(() => {
-    api.get("/health/db").then(r => setDb(r.data?.version || "ok")).catch(() => setDb("error"));
+    api
+      .get("/health/db")
+      .then((r: AxiosResponse<{ version?: string }>) => setDb(r.data?.version || "ok"))
+      .catch(() => setDb("error"));
   }, []);
   return (
     <div className="grid gap-4 md:grid-cols-2">
