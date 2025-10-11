@@ -1,6 +1,8 @@
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useLocation } from "react-router-dom";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/ui/primitives";
+
+const AUTH_ROUTES = new Set(["/login", "/register"]);
 
 const navMain = [
   { to: "/", label: "Search" },
@@ -13,6 +15,9 @@ const navAdmin = [
 ];
 
 export default function AppShell({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  if (AUTH_ROUTES.has(pathname)) return <>{children}</>;
+
   const [open, setOpen] = useState(false);
   const authed = !!localStorage.getItem("token");
   const logout = () => { localStorage.removeItem("token"); window.location.href = "/login"; };

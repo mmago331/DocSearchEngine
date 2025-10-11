@@ -95,6 +95,12 @@ The backend reads configuration from `backend/.env`:
 
 Update this table whenever environment requirements change.
 
+The frontend also recognises the following Vite environment variable:
+
+| Variable | Description |
+| --- | --- |
+| `VITE_API_URL` | Base URL for API requests issued by the React app. Set to `/` in production so the UI talks to the same origin as the backend (defaults to `http://localhost:4000`). |
+
 ## Testing
 No automated tests are defined yet. When you add tests, document the commands to run them in this section.
 
