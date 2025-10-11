@@ -20,15 +20,16 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
+      - name: Install workspace deps
+        run: |
+          npm --prefix frontend install --include=dev --no-audit --no-fund
+          npm --prefix backend  install --include=dev --no-audit --no-fund
+
       # Frontend
-      - run: npm ci
-        working-directory: frontend
       - run: npm run build
         working-directory: frontend
 
       # Backend
-      - run: npm ci
-        working-directory: backend
       - run: npm run build
         working-directory: backend
 
