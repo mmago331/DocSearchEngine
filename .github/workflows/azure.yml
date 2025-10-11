@@ -20,10 +20,20 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: Install workspace deps
+      - name: Harden npm downloads
         run: |
-          npm --prefix frontend install --include=dev --no-audit --no-fund
-          npm --prefix backend  install --include=dev --no-audit --no-fund
+          npm config set registry https://registry.npmjs.org/
+          npm config set fetch-retries 5
+          npm config set fetch-retry-factor 2
+          npm config set fetch-retry-maxtimeout 120000
+          npm config set fetch-timeout 120000
+          npm cache clean --force
+
+      - name: Use runner temp npm cache
+        run: npm config set cache "${{ runner.temp }}/.npm"
+
+      - name: Install (workspaces)
+        run: npm ci --workspaces --include-workspace-root
 
       # Frontend
       - run: npm run build
@@ -37,12 +47,6 @@ jobs:
       - run: |
           mkdir -p backend/dist/public
           cp -r frontend/dist/* backend/dist/public/
-
-      # Install runtime deps only in backend
-      - run: |
-          rm -rf backend/node_modules
-          npm ci --omit=dev
-        working-directory: backend
 
       # Zip backend only (faster deploy)
       - run: |
