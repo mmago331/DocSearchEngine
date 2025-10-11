@@ -24,7 +24,11 @@ router.post("/register", async (req, res) => {
   const passwordHash = await hashPassword(password);
   const user = await createUser(email, passwordHash);
 
-  const token = signToken({ sub: user.id, email: user.email });
+  const token = signToken({
+    sub: user.id,
+    email: user.email,
+    userId: user.id
+  });
   res.status(201).json({ token, user: { id: user.id, email: user.email, created_at: user.created_at } });
 });
 
@@ -40,7 +44,11 @@ router.post("/login", async (req, res) => {
   const ok = await verifyPassword(password, user.password_hash);
   if (!ok) return res.status(401).json({ error: "Invalid email or password" });
 
-  const token = signToken({ sub: user.id, email: user.email });
+  const token = signToken({
+    sub: user.id,
+    email: user.email,
+    userId: user.id
+  });
   res.json({ token, user: { id: user.id, email: user.email, created_at: user.created_at } });
 });
 
