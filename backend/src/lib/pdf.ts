@@ -1,22 +1,25 @@
-/* Extract plain text per page using pdfjs-dist (Node). */
+// pdfjs v3 legacy entry
+// @ts-ignore - types aren't shipped for worker path
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.js";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const worker = require("pdfjs-dist/legacy/build/pdf.worker.js");
-(pdfjsLib as any).GlobalWorkerOptions.workerSrc = worker;
+// @ts-ignore
+import worker from "pdfjs-dist/legacy/build/pdf.worker.js?url"; // when bundling; at runtime we don't actually spawn
+
+(pdfjsLib as any).GlobalWorkerOptions.workerSrc = worker ?? "";
 
 export async function extractTextPerPage(pdfBuffer: Buffer): Promise<string[]> {
   const loadingTask = (pdfjsLib as any).getDocument({ data: pdfBuffer, useSystemFonts: true });
   const pdf = await loadingTask.promise;
+
   const pages: string[] = [];
   try {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      const text = content.items
-        .map((item: any) => (typeof item?.str === "string" ? item.str : ""))
-        .join(" ");
-      pages.push(text.trim());
-      page.cleanup?.();
+      const textContent = await page.getTextContent();
+      const text = textContent.items
+        .map((it: any) => (typeof it?.str === "string" ? it.str : ""))
+        .join(" ")
+        .trim();
+      pages.push(text);
     }
   } finally {
     pdf.cleanup?.();
@@ -26,5 +29,5 @@ export async function extractTextPerPage(pdfBuffer: Buffer): Promise<string[]> {
 
 export function looksLikePdf(buf: Buffer): boolean {
   if (buf.length < 5) return false;
-  return buf.slice(0, 5).toString() === "%PDF-";
+  return buf.subarray(0, 5).toString() === "%PDF-";
 }

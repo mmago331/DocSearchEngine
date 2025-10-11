@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { pool } from "./pool";
+import { pool } from "@/lib/pool";
 
 const MIGRATIONS_DIR = path.resolve(__dirname, "../migrations");
 
