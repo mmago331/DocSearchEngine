@@ -1,11 +1,19 @@
 {
   "name": "docsearchengine",
   "private": true,
-  "workspaces": ["backend", "frontend"],
-  "engines": { "node": ">=20" },
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "npm ci --workspaces --include-workspace-root && npm run build:only",
     "build:only": "npm run -w frontend build && npm run -w backend build && node -e \"fs=require('fs');p='backend/dist/public';fs.mkdirSync(p,{recursive:true});fs.cpSync('frontend/dist',p,{recursive:true});\"",
     "start": "npm --prefix backend start"
+  },
+  "overrides": {
+    "pdfjs-dist": "3.11.174"
   }
 }
