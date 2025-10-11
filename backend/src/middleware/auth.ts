@@ -7,7 +7,7 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (!token) return res.status(401).json({ error: "Missing bearer token" });
   try {
     const payload = verifyToken(token);
-    req.user = { id: payload.sub };
+    req.user = { id: payload.userId ?? payload.sub };
     return next();
   } catch {
     return res.status(401).json({ error: "Invalid or expired token" });
