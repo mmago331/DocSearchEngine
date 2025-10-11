@@ -1,18 +1,53 @@
-import { useEffect, useState } from "react";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import AppShell from "./layout/AppShell";
+import Home from "./pages/Home";
+import Explore from "./pages/Explore";
+import Library from "./pages/Library";
+import DocumentPage from "./pages/DocumentPage";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Dashboard from "./pages/admin/Dashboard";
+import AdminDocuments from "./pages/admin/Documents";
+import { Protected, AdminOnly } from "./components/Protected";
+
+function ProtectedAppShell() {
+  return (
+    <Protected>
+      <AppShell>
+        <Outlet />
+      </AppShell>
+    </Protected>
+  );
+}
 
 export default function App() {
-  const [ok, setOk] = useState<string>("loading…");
-  useEffect(() => {
-    fetch("/api/health")
-      .then((r) => r.json())
-      .then((d) => setOk(JSON.stringify(d)))
-      .catch((e) => setOk("error: " + e));
-  }, []);
   return (
-    <div className="p-6">
-      <h1>DocSearchEngine</h1>
-      <p>API check: {ok}</p>
-      {/* TODO: import your Catalyst components and real pages here */}
-    </div>
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route element={<ProtectedAppShell />}>
+        <Route index element={<Home />} />
+        <Route path="library" element={<Library />} />
+        <Route path="explore" element={<Explore />} />
+        <Route path="documents/:id" element={<DocumentPage />} />
+        <Route
+          path="admin"
+          element={(
+            <AdminOnly>
+              <Dashboard />
+            </AdminOnly>
+          )}
+        />
+        <Route
+          path="admin/documents"
+          element={(
+            <AdminOnly>
+              <AdminDocuments />
+            </AdminOnly>
+          )}
+        />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
