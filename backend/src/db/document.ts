@@ -1,4 +1,4 @@
-import { query } from "@/db/pool";
+import { query } from "@/lib/pool";
 
 export type DbDocument = {
   id: string;

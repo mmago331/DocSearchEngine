@@ -1,12 +1,12 @@
 import jwt from "jsonwebtoken";
 import { env } from "@/lib/env";
 
-export type JwtPayload = { userId: string };
+export type JwtPayload = { sub: string; email: string };
 
-export function signToken(payload: JwtPayload) {
-  return jwt.sign(payload, env.JWT_SECRET, { algorithm: "HS256", expiresIn: "7d" });
+export function signToken(payload: JwtPayload, expiresIn = "7d") {
+  return jwt.sign(payload, env.JWT_SECRET, { expiresIn });
 }
 
-export function verifyToken(token: string): JwtPayload {
+export function verifyToken(token: string) {
   return jwt.verify(token, env.JWT_SECRET) as JwtPayload;
 }

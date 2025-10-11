@@ -1,6 +1,6 @@
 import type { Request, Response, Router } from "express";
 import { z } from "zod";
-import { pool } from "@/db/pool";
+import { pool } from "@/lib/pool";
 
 const Query = z.object({
   q: z.string().trim().min(2, "query too short"),
