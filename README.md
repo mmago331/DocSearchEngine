@@ -43,7 +43,7 @@ DocSearchEngine is a full-stack PDF ingestion and semantic search platform. User
    ```bash
    npm run dev --workspace backend
    ```
-   The server defaults to `http://localhost:4000` and exposes `/auth`, `/documents`, and `/api/search` endpoints.
+   The server defaults to `http://localhost:4000`, serves the compiled frontend, and exposes `/auth`, `/documents`, and `/api/search` endpoints from the same origin.
 
 6. **Start the frontend** (in a second terminal)
    ```bash
@@ -94,7 +94,9 @@ The backend reads configuration from `backend/.env`:
 | `JWT_SECRET` | Secret used to sign JWT access tokens. |
 | `ADMIN_EMAIL` | Optional email address for seeding an initial admin user at startup. |
 | `ADMIN_PASSWORD` | Optional password for the seeded admin user (required if `ADMIN_EMAIL` is set). |
-| `FRONTEND_ORIGIN` | Optional deployed frontend origin allowed by CORS (in addition to localhost). |
+| `ALLOWED_ORIGINS` | Optional comma-separated list of additional origins allowed by CORS. Leave unset to allow any origin. |
+| `APP_NAME` | Optional display name returned by `/runtime-config.json` for the UI to show. |
+| `LOG_LEVEL` | Set to `silent` to disable basic HTTP request logging. |
 | `SEARCH_TEXT_CONFIG` | PostgreSQL text search configuration (defaults to `english`). |
 
 Update this table whenever environment requirements change.
