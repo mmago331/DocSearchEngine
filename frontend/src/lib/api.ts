@@ -1,11 +1,9 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
 
-// Prefer an explicit env var; otherwise use same-origin (the website you deployed)
-const base =
-  (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim()) ||
-  (typeof window !== "undefined" ? "/" : "/");
-
-const api = axios.create({ baseURL: base });
+const api = axios.create({
+  // Use explicit env var when present; otherwise same-origin
+  baseURL: (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim()) || "/"
+});
 
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem("token");
