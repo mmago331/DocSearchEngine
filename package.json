@@ -9,8 +9,9 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "npm --prefix frontend ci && npm --prefix backend ci && npm --prefix frontend run build && npm --prefix backend run build && node scripts/move-ui.mjs",
-    "start": "node backend/dist/server.js"
+    "build": "npm ci --workspaces --include-workspace-root && npm run build:only",
+    "build:only": "npm run -w frontend build && npm run -w backend build && node -e \"fs=require('fs');p='backend/dist/public';fs.mkdirSync(p,{recursive:true});fs.cpSync('frontend/dist',p,{recursive:true});\"",
+    "start": "npm --prefix backend start"
   },
   "overrides": {}
 }
