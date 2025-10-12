@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 import { Button, Input, Card, CardBody, Badge } from "@/ui/primitives";
 
 type Row = {
@@ -12,14 +12,25 @@ type Row = {
 };
 
 export default function Home() {
-  const [q, setQ] = useState(""); const [rows, setRows] = useState<Row[]>([]);
-  const [err, setErr] = useState<string | null>(null); const [loading, setLoading] = useState(false);
+  const [q, setQ] = useState("");
+  const [rows, setRows] = useState<Row[]>([]);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const search = async (e: React.FormEvent) => {
-    e.preventDefault(); setErr(null); setLoading(true);
-    try { const { data } = await api.get("/api/search", { params: { q } }); setRows(data.results || []); }
-    catch (e: any) { setErr(e?.response?.data?.error || "search failed"); }
-    finally { setLoading(false); }
+    e.preventDefault();
+    setErr(null);
+    setLoading(true);
+    try {
+      const res = await api(`/api/search?q=${encodeURIComponent(q)}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "search failed");
+      setRows(data.results || []);
+    } catch (error: any) {
+      setErr(error?.message || "search failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

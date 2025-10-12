@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import type { AxiosResponse } from "axios";
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 import { Card, CardBody } from "@/ui/primitives";
 
 export default function Dashboard() {
   const [db, setDb] = useState<string>("…");
   useEffect(() => {
-    api
-      .get("/health/db")
-      .then((r: AxiosResponse<{ version?: string }>) => setDb(r.data?.version || "ok"))
+    api("/api/health")
+      .then(async (res) => {
+        if (!res.ok) throw new Error("error");
+        const data = await res.json().catch(() => ({}));
+        setDb(data?.ok ? "ok" : "error");
+      })
       .catch(() => setDb("error"));
   }, []);
   return (

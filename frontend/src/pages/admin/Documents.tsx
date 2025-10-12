@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 import { Card, CardBody, Table, Th, Td, Button, Badge } from "@/ui/primitives";
 import { useToast } from "@/ui/toast";
 
@@ -8,7 +8,12 @@ export default function AdminDocuments() {
   const { push } = useToast();
 
   const load = async () => {
-    const { data } = await api.get("/documents"); // replace with admin-only endpoint later
+    const res = await api("/api/documents");
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      push({ text: data?.error || "Load failed", tone: "error" });
+      return;
+    }
     setDocs(data.documents || []);
   };
   useEffect(() => { load(); }, []);
@@ -30,7 +35,12 @@ export default function AdminDocuments() {
                     <Button
                       variant="ghost"
                       onClick={async () => {
-                        await api.delete(`/documents/${d.id}`);
+                        const res = await api(`/api/documents/${d.id}`, { method: "DELETE" });
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok) {
+                          push({ text: data?.error || "Delete failed", tone: "error" });
+                          return;
+                        }
                         await load();
                         push({ text: "Deleted", tone: "success" });
                       }}
