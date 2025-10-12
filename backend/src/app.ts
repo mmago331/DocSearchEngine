@@ -24,11 +24,26 @@ app.use("/api", health);
 // TODO: app.use("/api/search", searchRoutes);
 
 // Serve React build (single-page app)
-const publicDir = path.join(process.cwd(), "dist", "public");
-app.use(express.static(publicDir));
+const publicDir = path.join(__dirname, "public");
+
+// Cache hashed assets for a year, but do NOT cache index.html
+app.use(
+  express.static(publicDir, {
+    maxAge: "1y",
+    immutable: true,
+    setHeaders: (res, filePath) => {
+      // never cache the SPA shell
+      if (filePath.endsWith("index.html")) {
+        res.setHeader("Cache-Control", "no-store");
+      }
+    },
+  })
+);
+
 // SPA fallback (except /api)
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/api")) return next();
+  res.setHeader("Cache-Control", "no-store");
   res.sendFile(path.join(publicDir, "index.html"));
 });
 
