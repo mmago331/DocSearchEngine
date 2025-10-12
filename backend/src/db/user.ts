@@ -1,4 +1,4 @@
-import { query } from "../lib/pool.js";
+import { query } from "../lib/pool";
 
 export type DbUser = {
   id: string;

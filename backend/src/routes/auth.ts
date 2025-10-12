@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { z } from "zod";
-import { createUser, findUserByEmail, findUserById } from "../db/user.js";
-import { hashPassword, verifyPassword } from "../lib/crypto.js";
-import { signToken } from "../lib/jwt.js";
-import { requireAuth } from "../middleware/auth.js";
+import { createUser, findUserByEmail, findUserById } from "../db/user";
+import { hashPassword, verifyPassword } from "../lib/crypto";
+import { signToken } from "../lib/jwt";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 

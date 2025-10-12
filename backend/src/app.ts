@@ -3,10 +3,10 @@ import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
-import health from "./routes/health.js";
-import auth from "./routes/auth.js";
-import documents from "./routes/documents.js";
-import mountSearch from "./routes/search.js";
+import health from "./routes/health";
+import auth from "./routes/auth";
+import documents from "./routes/documents";
+import mountSearch from "./routes/search";
 
 export default function createApp() {
   const app = express();

@@ -1,6 +1,6 @@
-import axios, { AxiosHeaders } from "axios";
+import axios from "axios";
 
-// Use VITE_API_URL if Azure provides it; otherwise same-origin.
+// Use Azure VITE_API_URL if set, otherwise same-origin.
 // No localhost fallback.
 const baseURL = (import.meta.env?.VITE_API_URL ?? "").trim() || "/";
 
@@ -12,9 +12,10 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
-    const headers = AxiosHeaders.from(config.headers ?? {});
-    headers.set("Authorization", `Bearer ${token}`);
-    config.headers = headers;
+    if (!config.headers) {
+      config.headers = {} as any;
+    }
+    (config.headers as any)["Authorization"] = `Bearer ${token}`;
   }
   return config;
 });

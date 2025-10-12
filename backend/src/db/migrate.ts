@@ -1,10 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { pool } from "../lib/pool.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { pool } from "../lib/pool";
 
 const MIGRATIONS_DIR = path.resolve(__dirname, "../migrations");
 
