@@ -1,16 +1,22 @@
-import http from "node:http";
-import path from "path";
 import express from "express";
 import session from "express-session";
-import { fileURLToPath } from "url";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import createApp from "./app";
 import ensureAdmin from "./startup/ensureAdmin";
 import { errorHandler } from "./lib/errorHandler";
 
-const app = createApp();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const publicDir = path.join(__dirname, "public");
 
-// sessions (cookie stored id; data on server)
+const app = express();
+
+app.use(express.json({ limit: "25mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+createApp(app);
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "change_me",
@@ -68,12 +74,18 @@ app.use((req, res, next) => {
   return next();
 });
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const publicDir = path.join(__dirname, "public");
+app.use(
+  express.static(publicDir, {
+    maxAge: "1y",
+    immutable: true,
+    setHeaders(res, filePath) {
+      if (filePath.endsWith("index.html")) res.setHeader("Cache-Control", "no-store");
+    },
+  })
+);
 
-app.use(express.static(publicDir));
-
-app.get("*", (_req, res) => {
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api/")) return next();
   res.setHeader("Cache-Control", "no-store");
   res.sendFile(path.join(publicDir, "index.html"));
 });
@@ -89,7 +101,7 @@ const port = Number(process.env.PORT) || 8080;
     console.error("[startup] ensureAdmin failed:", e);
   }
 
-  http.createServer(app).listen(port, () => {
-    console.log(`[backend] listening on :${port}`);
+  app.listen(port, () => {
+    console.log(`[server] listening on :${port}`);
   });
 })();

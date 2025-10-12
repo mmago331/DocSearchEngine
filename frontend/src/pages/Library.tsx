@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 import { Button, Input, Card, CardBody, Table, Th, Td, Badge } from "@/ui/primitives";
 import { useToast } from "@/ui/toast";
 
@@ -13,15 +13,16 @@ export default function Library() {
   const load = async () => {
     setErr(null);
     try {
-      const res = await api("/api/documents");
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || "load failed");
-      setDocs(data.documents || []);
+      const { data } = await api.get<{ documents?: any[] }>("/api/documents");
+      setDocs(data?.documents || []);
     } catch (error: any) {
-      setErr(error?.message || "load failed");
+      const message = error?.response?.data?.error || error?.message || "load failed";
+      setErr(message);
     }
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
   const upload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,20 +31,15 @@ export default function Library() {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/documents", {
-        method: "POST",
-        body: fd,
-        credentials: "include",
+      await api.post("/api/documents", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error((data as any)?.error || "upload failed");
-      }
       setFile(null);
       await load();
       push({ text: "Uploaded", tone: "success" });
     } catch (error: any) {
-      setErr(error?.message || "upload failed");
+      const message = error?.response?.data?.error || error?.message || "upload failed";
+      setErr(message);
       push({ text: "Upload failed", tone: "error" });
     } finally {
       setLoading(false);
@@ -73,13 +69,13 @@ export default function Library() {
                       <Button
                         variant="ghost"
                         onClick={async () => {
-                          const res = await api(`/api/documents/${d.id}/visibility`, {
-                            method: "PATCH",
-                            body: JSON.stringify({ is_public: !d.is_public }),
-                          });
-                          const data = await res.json().catch(() => ({}));
-                          if (!res.ok) {
-                            push({ text: data?.error || "Update failed", tone: "error" });
+                          try {
+                            await api.patch(`/api/documents/${d.id}/visibility`, {
+                              is_public: !d.is_public,
+                            });
+                          } catch (error: any) {
+                            const message = error?.response?.data?.error || "Update failed";
+                            push({ text: message, tone: "error" });
                             return;
                           }
                           await load();
@@ -92,10 +88,11 @@ export default function Library() {
                         variant="ghost"
                         onClick={async () => {
                           if (!confirm("Delete this document?")) return;
-                          const res = await api(`/api/documents/${d.id}`, { method: "DELETE" });
-                          const data = await res.json().catch(() => ({}));
-                          if (!res.ok) {
-                            push({ text: data?.error || "Delete failed", tone: "error" });
+                          try {
+                            await api.delete(`/api/documents/${d.id}`);
+                          } catch (error: any) {
+                            const message = error?.response?.data?.error || "Delete failed";
+                            push({ text: message, tone: "error" });
                             return;
                           }
                           await load();

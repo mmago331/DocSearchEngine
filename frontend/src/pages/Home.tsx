@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 import { Button, Input, Card, CardBody, Badge } from "@/ui/primitives";
 
 type Row = {
@@ -22,12 +22,13 @@ export default function Home() {
     setErr(null);
     setLoading(true);
     try {
-      const res = await api(`/api/search?q=${encodeURIComponent(q)}`);
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || "search failed");
-      setRows(data.results || []);
+      const { data } = await api.get<{ results?: Row[] }>("/api/search", {
+        params: { q },
+      });
+      setRows(data?.results || []);
     } catch (error: any) {
-      setErr(error?.message || "search failed");
+      const message = error?.response?.data?.error || error?.message || "search failed";
+      setErr(message);
     } finally {
       setLoading(false);
     }

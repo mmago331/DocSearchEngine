@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 import { Card, CardBody } from "@/ui/primitives";
 
 export default function Dashboard() {
   const [db, setDb] = useState<string>("…");
   useEffect(() => {
-    api("/api/health")
-      .then(async (res) => {
-        if (!res.ok) throw new Error("error");
-        const data = await res.json().catch(() => ({}));
+    api
+      .get<{ ok?: boolean }>("/api/health")
+      .then(({ data }) => {
         setDb(data?.ok ? "ok" : "error");
       })
       .catch(() => setDb("error"));

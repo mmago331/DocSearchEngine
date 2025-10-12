@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 import { Card, CardBody, Table, Th, Td, Button, Badge } from "@/ui/primitives";
 import { useToast } from "@/ui/toast";
 
@@ -8,15 +8,17 @@ export default function AdminDocuments() {
   const { push } = useToast();
 
   const load = async () => {
-    const res = await api("/api/documents");
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      push({ text: data?.error || "Load failed", tone: "error" });
-      return;
+    try {
+      const { data } = await api.get<{ documents?: any[] }>("/api/documents");
+      setDocs(data?.documents || []);
+    } catch (error: any) {
+      const message = error?.response?.data?.error || "Load failed";
+      push({ text: message, tone: "error" });
     }
-    setDocs(data.documents || []);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
   return (
     <div>
       <h1 className="mb-4 text-2xl font-semibold">Documents</h1>
@@ -35,10 +37,11 @@ export default function AdminDocuments() {
                     <Button
                       variant="ghost"
                       onClick={async () => {
-                        const res = await api(`/api/documents/${d.id}`, { method: "DELETE" });
-                        const data = await res.json().catch(() => ({}));
-                        if (!res.ok) {
-                          push({ text: data?.error || "Delete failed", tone: "error" });
+                        try {
+                          await api.delete(`/api/documents/${d.id}`);
+                        } catch (error: any) {
+                          const message = error?.response?.data?.error || "Delete failed";
+                          push({ text: message, tone: "error" });
                           return;
                         }
                         await load();

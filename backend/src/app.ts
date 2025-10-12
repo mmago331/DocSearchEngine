@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type Application } from "express";
 import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -7,13 +7,13 @@ import health from "./routes/health";
 import documents from "./routes/documents";
 import mountSearch from "./routes/search";
 
-export default function createApp() {
-  const app = express();
+export default function createApp(app?: Application) {
+  const configuredApp = app ?? express();
 
-  app.disable("x-powered-by");
-  app.use(helmet());
+  configuredApp.disable("x-powered-by");
+  configuredApp.use(helmet());
   if (process.env.LOG_LEVEL !== "silent") {
-    app.use((req, res, next) => {
+    configuredApp.use((req, res, next) => {
       const start = Date.now();
       res.on("finish", () => {
         const duration = Date.now() - start;
@@ -24,16 +24,18 @@ export default function createApp() {
       next();
     });
   }
-  app.use(express.json({ limit: "25mb" }));
-  app.use(express.urlencoded({ extended: true }));
-  app.use(cookieParser());
+  if (!app) {
+    configuredApp.use(express.json({ limit: "25mb" }));
+    configuredApp.use(express.urlencoded({ extended: true }));
+  }
+  configuredApp.use(cookieParser());
 
   const allowed = (process.env.ALLOWED_ORIGINS || "")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean);
 
-  app.use(
+  configuredApp.use(
     cors({
       origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
         if (!origin) return cb(null, true);
@@ -44,16 +46,16 @@ export default function createApp() {
     })
   );
 
-  app.get("/runtime-config.json", (_req, res) => {
+  configuredApp.get("/runtime-config.json", (_req, res) => {
     res.setHeader("Cache-Control", "no-store");
     res.json({
       appName: process.env.APP_NAME || "DocSearchEngine",
     });
   });
 
-  app.use("/api", health);
-  app.use("/api/documents", documents);
-  mountSearch(app);
+  configuredApp.use("/api", health);
+  configuredApp.use("/api/documents", documents);
+  mountSearch(configuredApp);
 
-  return app;
+  return configuredApp;
 }

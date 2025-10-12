@@ -1,18 +1,26 @@
-import { api } from "./api";
+import api from "./api";
 
 export type User = { email: string } | null;
 
 export async function getMe(): Promise<User> {
-  const r = await api("/auth/me");
-  const j = await r.json().catch(() => ({}));
-  return j?.user ?? null;
+  try {
+    const { data } = await api.get<{ user?: User }>("/auth/me");
+    return data?.user ?? null;
+  } catch (error: any) {
+    if (error?.response?.status === 401) return null;
+    return null;
+  }
 }
 
 export async function login(email: string, password: string) {
-  const r = await api("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) });
-  if (!r.ok) throw new Error("login_failed");
+  try {
+    await api.post("/auth/login", { email, password });
+  } catch (error: any) {
+    const message = error?.response?.data?.error || "login_failed";
+    throw new Error(message);
+  }
 }
 
 export async function logout() {
-  await api("/auth/logout", { method: "POST" });
+  await api.post("/auth/logout");
 }
