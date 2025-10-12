@@ -37,21 +37,10 @@ jobs:
       - name: Use runner temp npm cache
         run: npm config set cache "${{ runner.temp }}/.npm"
 
-      - name: Install (workspaces)
-        run: npm ci --workspaces --include-workspace-root --no-audit --no-fund
-
-      # Frontend
-      - run: npm run build
-        working-directory: frontend
-
-      # Backend
-      - run: npm run build
-        working-directory: backend
-
-      # Copy UI into backend/dist/public
-      - run: |
-          mkdir -p backend/dist/public
-          cp -r frontend/dist/* backend/dist/public/
+      - name: Install & Build (root orchestrated)
+        run: |
+          npm ci
+          npm run build
 
       # Zip backend only (faster deploy)
       - run: |
