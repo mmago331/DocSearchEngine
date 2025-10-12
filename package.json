@@ -13,7 +13,5 @@
     "build:only": "npm run -w frontend build && npm run -w backend build && node -e \"fs=require('fs');p='backend/dist/public';fs.mkdirSync(p,{recursive:true});fs.cpSync('frontend/dist',p,{recursive:true});\"",
     "start": "npm --prefix backend start"
   },
-  "overrides": {
-    "pdfjs-dist": "^4.10.38"
-  }
+  "overrides": {}
 }
