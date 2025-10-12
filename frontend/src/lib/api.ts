@@ -1,22 +1,22 @@
-import axios, { type InternalAxiosRequestConfig } from "axios";
+import axios, { AxiosHeaders } from "axios";
 
-// Same-origin by default; optional VITE_API_URL can override in non-prod cases.
+// Use VITE_API_URL if Azure provides it; otherwise same-origin.
+// No localhost fallback.
+const baseURL = (import.meta.env?.VITE_API_URL ?? "").trim() || "/";
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? "/",
+  baseURL,
+  withCredentials: true,
 });
 
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
-    const headers: any = config.headers ?? {};
-    if (typeof headers.set === "function") {
-      headers.set("Authorization", `Bearer ${token}`);
-    } else {
-      (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
-    }
+    const headers = AxiosHeaders.from(config.headers ?? {});
+    headers.set("Authorization", `Bearer ${token}`);
     config.headers = headers;
   }
   return config;
 });
 
-export { api };
+export default api;

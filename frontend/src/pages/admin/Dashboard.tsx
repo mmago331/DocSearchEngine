@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { AxiosResponse } from "axios";
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 import { Card, CardBody } from "@/ui/primitives";
 
 export default function Dashboard() {

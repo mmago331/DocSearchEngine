@@ -1,6 +1,10 @@
-import fs from "fs/promises";
-import path from "path";
-import { pool } from "@/lib/pool";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { pool } from "../lib/pool.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const MIGRATIONS_DIR = path.resolve(__dirname, "../migrations");
 
@@ -15,14 +19,14 @@ async function ensureMigrationsTable() {
 
 async function getApplied(): Promise<Set<string>> {
   const res = await pool.query<{ name: string }>("SELECT name FROM migrations ORDER BY name ASC");
-  return new Set(res.rows.map(r => r.name));
+  return new Set(res.rows.map((r: { name: string }) => r.name));
 }
 
 async function getAllMigrations() {
   const entries = await fs.readdir(MIGRATIONS_DIR, { withFileTypes: true });
   return entries
-    .filter(e => e.isDirectory())
-    .map(e => e.name)
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name)
     .sort();
 }
 

@@ -3,10 +3,10 @@ import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
-import health from "@/routes/health";
-import auth from "@/routes/auth";
-import documents from "@/routes/documents";
-import mountSearch from "@/routes/search";
+import health from "./routes/health.js";
+import auth from "./routes/auth.js";
+import documents from "./routes/documents.js";
+import mountSearch from "./routes/search.js";
 
 export default function createApp() {
   const app = express();
@@ -36,7 +36,7 @@ export default function createApp() {
 
   app.use(
     cors({
-      origin: (origin, cb) => {
+      origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
         if (!origin) return cb(null, true);
         if (!allowed.length) return cb(null, true);
         return cb(null, allowed.includes(origin));

@@ -1,12 +1,12 @@
 import type { Request, Response, Router } from "express";
 import { z } from "zod";
-import { pool } from "@/lib/pool";
+import { pool } from "../lib/pool.js";
 
 const Query = z.object({
   q: z.string().trim().min(2, "query too short"),
   limit: z.coerce.number().int().min(1).max(50).default(10),
   offset: z.coerce.number().int().min(0).default(0),
-  documentId: z.string().uuid().optional()
+  documentId: z.string().uuid().optional(),
 });
 
 type SearchRow = {
