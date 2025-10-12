@@ -8,6 +8,9 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # required by azure/login@v2 to request the OIDC token
+      contents: read    # required for actions/checkout and artifact steps
 
     steps:
       - name: Checkout
