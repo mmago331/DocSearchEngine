@@ -14,6 +14,6 @@
     "start": "npm --prefix backend start"
   },
   "overrides": {
-    "pdfjs-dist": "3.11.174"
+    "pdfjs-dist": "^4.10.38"
   }
 }
