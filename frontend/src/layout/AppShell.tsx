@@ -1,13 +1,13 @@
-// frontend/src/layout/AppShell.tsx
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useState, type ReactNode } from "react";
+
+const AUTH_ROUTES = new Set(["/login", "/register"]);
 
 export default function AppShell({ children }: { children?: ReactNode }) {
   const { pathname } = useLocation();
   const content = children ?? <Outlet />;
 
-  // On login/register, render ONLY the page content (no chrome)
-  if (pathname === "/login" || pathname === "/register") {
+  if (AUTH_ROUTES.has(pathname)) {
     return <>{content}</>;
   }
 
@@ -62,9 +62,7 @@ export default function AppShell({ children }: { children?: ReactNode }) {
             </nav>
           </div>
         </aside>
-        <main className="col-span-12 lg:col-span-9">
-          {content}
-        </main>
+        <main className="col-span-12 lg:col-span-9">{content}</main>
       </div>
     </div>
   );
