@@ -1,17 +1,19 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useState, type ReactNode } from "react";
 
-const AUTH_ROUTES = new Set(["/login", "/register"]);
+export default function AppShell() {
+  const loc = useLocation();
+  const authPage = loc.pathname === "/login" || loc.pathname === "/register";
+  const [open, setOpen] = useState(false);
 
-export default function AppShell({ children }: { children?: ReactNode }) {
-  const { pathname } = useLocation();
-  const content = children ?? <Outlet />;
-
-  if (AUTH_ROUTES.has(pathname)) {
-    return <>{content}</>;
+  if (authPage) {
+    return (
+      <main className="min-h-screen bg-gray-50">
+        <Outlet />
+      </main>
+    );
   }
 
-  const [open, setOpen] = useState(false);
   const Item = ({ to, children: itemChildren }: { to: string; children: ReactNode }) => (
     <NavLink
       to={to}
@@ -62,7 +64,9 @@ export default function AppShell({ children }: { children?: ReactNode }) {
             </nav>
           </div>
         </aside>
-        <main className="col-span-12 lg:col-span-9">{content}</main>
+        <main className="col-span-12 lg:col-span-9">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

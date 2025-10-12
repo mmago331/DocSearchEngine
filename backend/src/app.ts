@@ -4,7 +4,6 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import health from "./routes/health";
-import auth from "./routes/auth";
 import documents from "./routes/documents";
 import mountSearch from "./routes/search";
 
@@ -53,7 +52,6 @@ export default function createApp() {
   });
 
   app.use("/api", health);
-  app.use("/auth", auth);
   app.use("/api/documents", documents);
   mountSearch(app);
 
