@@ -1,13 +1,11 @@
 {
   "name": "@docsearchengine/backend",
   "private": true,
-  "type": "module",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json && shx cp -r src/migrations dist/migrations",
-    "postbuild": "node scripts/build-ui.mjs",
+    "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
     "dev": "nodemon --watch src --exec \"ts-node src/server.ts\""
   },

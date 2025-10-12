@@ -1,6 +1,6 @@
-import { findUserByEmail, createUser } from "../db/user.js";
-import { hashPassword } from "../lib/crypto.js";
-import { env } from "../lib/env.js";
+import { findUserByEmail, createUser } from "../db/user";
+import { hashPassword } from "../lib/crypto";
+import { env } from "../lib/env";
 
 export default async function ensureAdmin() {
   const email = env.ADMIN_EMAIL;

@@ -43,7 +43,7 @@ DocSearchEngine is a full-stack PDF ingestion and semantic search platform. User
    ```bash
    npm run dev --workspace backend
    ```
-   The server defaults to `http://localhost:4000`, serves the compiled frontend, and exposes `/auth`, `/documents`, and `/api/search` endpoints from the same origin.
+   The server defaults to `http://localhost:8080`, serves the compiled frontend, and exposes `/auth`, `/documents`, and `/api/search` endpoints from the same origin.
 
 6. **Start the frontend** (in a second terminal)
    ```bash
@@ -89,7 +89,7 @@ The backend reads configuration from `backend/.env`:
 | Variable | Description |
 | --- | --- |
 | `NODE_ENV` | Runtime mode (`development`, `production`, etc.). |
-| `PORT` | HTTP port for the API server (defaults to `4000`). |
+| `PORT` | HTTP port for the API server (defaults to `8080`). |
 | `DATABASE_URL` | Connection string for PostgreSQL. |
 | `JWT_SECRET` | Secret used to sign JWT access tokens. |
 | `ADMIN_EMAIL` | Optional email address for seeding an initial admin user at startup. |
@@ -105,7 +105,7 @@ The frontend also recognises the following Vite environment variable:
 
 | Variable | Description |
 | --- | --- |
-| `VITE_API_URL` | Base URL for API requests issued by the React app. Leave unset in production so the UI talks to the same origin as the backend; set to `http://localhost:4000` only for local development. |
+| `VITE_API_URL` | Base URL for API requests issued by the React app. Leave unset in production so the UI talks to the same origin as the backend; set to `http://localhost:8080` only for local development. |
 
 ## Testing
 No automated tests are defined yet. When you add tests, document the commands to run them in this section.

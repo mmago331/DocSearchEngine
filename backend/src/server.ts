@@ -1,19 +1,14 @@
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import http from "node:http";
 import express from "express";
-import createApp from "./app.js"; // <-- NOTE: .js extension
-import ensureAdmin from "./startup/ensureAdmin.js";
-import { errorHandler } from "./lib/errorHandler.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import createApp from "./app";
+import ensureAdmin from "./startup/ensureAdmin";
+import { errorHandler } from "./lib/errorHandler";
 
 const app = createApp();
-
 const publicDir = path.join(__dirname, "public");
 
-// Serve hashed assets long-cache; but never cache index.html (SPA shell)
+// Serve assets long-cache, but never cache the SPA shell
 app.use(
   express.static(publicDir, {
     maxAge: "1y",
@@ -26,7 +21,7 @@ app.use(
   })
 );
 
-// SPA fallback for non-API routes
+// SPA fallback
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/auth") || req.path.startsWith("/documents") || req.path.startsWith("/api")) {
     return next();
