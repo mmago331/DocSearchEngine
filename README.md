@@ -91,6 +91,9 @@ The backend reads configuration from `backend/.env`:
 | `PORT` | HTTP port for the API server (defaults to `4000`). |
 | `DATABASE_URL` | Connection string for PostgreSQL. |
 | `JWT_SECRET` | Secret used to sign JWT access tokens. |
+| `ADMIN_EMAIL` | Optional email address for seeding an initial admin user at startup. |
+| `ADMIN_PASSWORD` | Optional password for the seeded admin user (required if `ADMIN_EMAIL` is set). |
+| `FRONTEND_ORIGIN` | Optional deployed frontend origin allowed by CORS (in addition to localhost). |
 | `SEARCH_TEXT_CONFIG` | PostgreSQL text search configuration (defaults to `english`). |
 
 Update this table whenever environment requirements change.

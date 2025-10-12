@@ -1,13 +1,16 @@
-import http from "node:http";
 import app from "@/app";
 import { env } from "@/lib/env";
+import ensureAdmin from "@/startup/ensureAdmin";
 
-const server = http.createServer(app);
+(async () => {
+  try {
+    await ensureAdmin();
+  } catch (e) {
+    console.error("[startup] ensureAdmin failed:", e);
+  }
 
-server.listen(env.PORT, () => {
-  console.log(`[backend] listening on http://localhost:${env.PORT} (${env.NODE_ENV})`);
-});
-
-// crash visibility
-process.on("unhandledRejection", (r) => console.error("[unhandledRejection]", r));
-process.on("uncaughtException", (e) => console.error("[uncaughtException]", e));
+  const port = Number(env.PORT) || 4000;
+  app.listen(port, () => {
+    console.log(`[backend] listening on http://localhost:${port} (${env.NODE_ENV})`);
+  });
+})();

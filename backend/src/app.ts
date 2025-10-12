@@ -5,10 +5,14 @@ import cookieParser from "cookie-parser";
 import path from "node:path";
 import health from "@/routes/health";
 import { errorHandler } from "@/lib/errorHandler";
+import { env } from "@/lib/env";
 
 const app = express();
 app.use(helmet());
-app.use(cors({ origin: true, credentials: true }));
+const allowedOrigins = ["http://localhost:5173"];
+if (env.FRONTEND_ORIGIN) allowedOrigins.push(env.FRONTEND_ORIGIN);
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "25mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
