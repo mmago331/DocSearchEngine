@@ -108,3 +108,8 @@ No automated tests are defined yet. When you add tests, document the commands to
 - [`backend/README.md`](backend/README.md) – backend-specific notes.
 - [`shared/README.md`](shared/README.md) – guidance for shared types.
 
+## Deployment status
+- ✅ Build and deploy are currently green using the existing Azure workflow.
+- The workflow deploys via the publish-profile action and **must not be modified without prior coordination**.
+- The pipeline builds the frontend with Vite, copies the generated assets into `backend/dist/public`, and zips the backend for deployment. This configuration is correct and should remain in place.
+
