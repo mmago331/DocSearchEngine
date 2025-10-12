@@ -2,7 +2,9 @@
   "name": "@docsearchengine/backend",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json && shx cp -r src/migrations dist/migrations",
     "start": "node dist/server.js",
@@ -12,11 +14,12 @@
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
     "express": "^4.19.2",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
-    "pg": "^8.11.5",
     "pdfjs-dist": "^4.10.38",
+    "pg": "^8.11.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {
