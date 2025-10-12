@@ -1,21 +1,20 @@
-import axios from "axios";
+// frontend/src/lib/api.ts
+import axios, { type InternalAxiosRequestConfig } from "axios";
 
 /**
- * In development, allow VITE_API_URL (or fallback to localhost).
- * In production (the built site on Azure), use relative URLs so requests
- * go to the same origin that served the frontend (avoids CSP issues).
+ * Always use same-origin so requests go to the site that served this page.
+ * No environment variables. No localhost.
  */
-const isDev = import.meta.env.MODE === "development";
+const api = axios.create(); // no baseURL => relative paths use same-origin
 
-const baseURL = isDev
-  ? (import.meta.env.VITE_API_URL || "http://localhost:4000")
-  : ""; // same-origin in production
-
-const api = axios.create({ baseURL });
-
-api.interceptors.request.use((config) => {
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = localStorage.getItem("token");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    const headers: any = config.headers ?? {};
+    if (typeof headers.set === "function") headers.set("Authorization", `Bearer ${token}`);
+    else headers["Authorization"] = `Bearer ${token}`;
+    config.headers = headers;
+  }
   return config;
 });
 
