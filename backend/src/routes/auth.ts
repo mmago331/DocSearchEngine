@@ -1,20 +1,22 @@
 import { Router } from "express";
 import { z } from "zod";
-import { createUser, findUserByEmail, findUserById } from "@/db/user";
-import { hashPassword, verifyPassword } from "@/lib/crypto";
-import { signToken } from "@/lib/jwt";
-import { requireAuth } from "@/middleware/auth";
+import { createUser, findUserByEmail, findUserById } from "../db/user.js";
+import { hashPassword, verifyPassword } from "../lib/crypto.js";
+import { signToken } from "../lib/jwt.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
 
 const credsSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8)
+  password: z.string().min(8),
 });
 
 router.post("/register", async (req, res) => {
   const parsed = credsSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "Invalid payload", issues: parsed.error.issues });
+  if (!parsed.success) {
+    return res.status(400).json({ error: "Invalid payload", issues: parsed.error.issues });
+  }
 
   const { email, password } = parsed.data;
 
@@ -27,14 +29,16 @@ router.post("/register", async (req, res) => {
   const token = signToken({
     sub: user.id,
     email: user.email,
-    userId: user.id
+    userId: user.id,
   });
   res.status(201).json({ token, user: { id: user.id, email: user.email, created_at: user.created_at } });
 });
 
 router.post("/login", async (req, res) => {
   const parsed = credsSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "Invalid payload", issues: parsed.error.issues });
+  if (!parsed.success) {
+    return res.status(400).json({ error: "Invalid payload", issues: parsed.error.issues });
+  }
 
   const { email, password } = parsed.data;
 
@@ -47,7 +51,7 @@ router.post("/login", async (req, res) => {
   const token = signToken({
     sub: user.id,
     email: user.email,
-    userId: user.id
+    userId: user.id,
   });
   res.json({ token, user: { id: user.id, email: user.email, created_at: user.created_at } });
 });

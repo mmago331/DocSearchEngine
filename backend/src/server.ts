@@ -1,14 +1,19 @@
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import http from "node:http";
 import express from "express";
+import createApp from "./app.js"; // <-- NOTE: .js extension
+import ensureAdmin from "./startup/ensureAdmin.js";
+import { errorHandler } from "./lib/errorHandler.js";
 
-import createApp from "./app";
-import ensureAdmin from "@/startup/ensureAdmin";
-import { errorHandler } from "@/lib/errorHandler";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = createApp();
 
 const publicDir = path.join(__dirname, "public");
+
+// Serve hashed assets long-cache; but never cache index.html (SPA shell)
 app.use(
   express.static(publicDir, {
     maxAge: "1y",
@@ -21,12 +26,9 @@ app.use(
   })
 );
 
+// SPA fallback for non-API routes
 app.get("*", (req, res, next) => {
-  if (
-    req.path.startsWith("/auth") ||
-    req.path.startsWith("/documents") ||
-    req.path.startsWith("/api")
-  ) {
+  if (req.path.startsWith("/auth") || req.path.startsWith("/documents") || req.path.startsWith("/api")) {
     return next();
   }
   res.setHeader("Cache-Control", "no-store");
@@ -35,7 +37,7 @@ app.get("*", (req, res, next) => {
 
 app.use(errorHandler);
 
-const port = Number(process.env.PORT) || 4000;
+const port = Number(process.env.PORT) || 8080;
 
 (async () => {
   try {
