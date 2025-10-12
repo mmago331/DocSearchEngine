@@ -1,70 +1,105 @@
-import { NavLink, Link, useLocation } from "react-router-dom";
-import { useState, type ReactNode } from "react";
-import { Button } from "@/ui/primitives";
+// frontend/src/layout/AppShell.tsx
+import { ReactNode, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
-const AUTH_ROUTES = new Set(["/login", "/register"]);
+const Bars3Icon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={1.5}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="h-5 w-5"
+    {...props}
+  >
+    <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+  </svg>
+);
 
-const navMain = [
-  { to: "/", label: "Search" },
-  { to: "/library", label: "Library", auth: true },
-  { to: "/explore", label: "Explore" }
-];
-const navAdmin = [
-  { to: "/admin", label: "Dashboard", end: true, auth: true },
-  { to: "/admin/documents", label: "Documents", auth: true }
+const items = [
+  { to: "/", label: "Search", end: true },
+  { to: "/explore", label: "Explore" },
+  { to: "/admin", label: "Admin" }
 ];
 
 export default function AppShell({ children }: { children: ReactNode }) {
-  const { pathname } = useLocation();
-  if (AUTH_ROUTES.has(pathname)) return <>{children}</>;
-
   const [open, setOpen] = useState(false);
+  const nav = useNavigate();
   const authed = !!localStorage.getItem("token");
-  const logout = () => { localStorage.removeItem("token"); window.location.href = "/login"; };
+  const { pathname } = useLocation();
 
-  const Item = ({ to, label, end = false }: any) => (
+  // On login/register we render ONLY the children (no header/sidebar)
+  const AUTH_ROUTES = ["/login", "/register"];
+  if (AUTH_ROUTES.includes(pathname)) {
+    return (
+      <main className="min-h-screen bg-gray-50">
+        <div className="mx-auto w-full max-w-7xl p-4">{children}</div>
+      </main>
+    );
+  }
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    nav("/login");
+  };
+
+  const NavItem = ({ to, children, end = false }: any) => (
     <NavLink
       to={to}
       end={end}
       className={({ isActive }) =>
-        `block rounded-md px-3 py-2 text-sm ${isActive ? "bg-indigo-50 text-indigo-700" : "text-gray-700 hover:bg-gray-50"}`
+        `block rounded-md px-3 py-2 text-sm ${
+          isActive ? "bg-indigo-50 text-indigo-700" : "text-gray-700 hover:bg-gray-50"
+        }`
       }
       onClick={() => setOpen(false)}
     >
-      {label}
+      {children}
     </NavLink>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Topbar */}
-      <div className="sticky top-0 z-40 border-b bg-white/90 backdrop-blur">
+    <>
+      {/* Top bar */}
+      <header className="border-b bg-white">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
-          <button className="rounded-md p-2 hover:bg-gray-100 lg:hidden" onClick={() => setOpen(s => !s)}>☰</button>
+          <button className="rounded-md p-2 hover:bg-gray-100 lg:hidden" onClick={() => setOpen(v => !v)}>
+            <Bars3Icon className="h-5 w-5" />
+          </button>
           <Link to="/" className="text-lg font-semibold text-indigo-700">DocSearchEngine</Link>
-          <div className="ml-4 hidden lg:flex lg:items-center lg:gap-1">
-            {navMain.map(i => (!i.auth || authed) && <Item key={i.to} {...i} />)}
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            <Link className="text-sm text-gray-600 hover:text-gray-900" to="/admin">Admin</Link>
-            {authed
-              ? <Button variant="ghost" onClick={logout}>Logout</Button>
-              : <Link className="text-sm text-indigo-700 hover:underline" to="/login">Login</Link>}
+          <nav className="hidden gap-1 lg:flex">
+            <NavItem to="/" end>Search</NavItem>
+            <NavItem to="/explore">Explore</NavItem>
+            <NavItem to="/admin">Admin</NavItem>
+          </nav>
+          <div className="ml-auto">
+            {authed ? (
+              <button className="text-indigo-600 hover:bg-indigo-50 rounded-lg px-3 py-2 text-sm" onClick={logout}>Logout</button>
+            ) : (
+              <Link className="text-indigo-600 hover:bg-indigo-50 rounded-lg px-3 py-2 text-sm" to="/login">Login</Link>
+            )}
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Body with sidebar */}
-      <div className="mx-auto flex max-w-7xl">
-        <aside className={`fixed inset-y-0 left-0 z-30 w-64 border-r bg-white p-3 transition-transform lg:static
-          ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
-          <div className="mb-2 px-2 text-xs font-semibold text-gray-500">Main</div>
-          <nav className="mb-4 space-y-1">{navMain.map(i => (!i.auth || authed) && <Item key={i.to} {...i} />)}</nav>
-          <div className="mb-2 px-2 text-xs font-semibold text-gray-500">Admin</div>
-          <nav className="space-y-1">{navAdmin.map(i => (!i.auth || authed) && <Item key={i.to} {...i} />)}</nav>
+      {/* Shell with sidebar */}
+      <div className="flex min-h-[calc(100vh-56px)]">
+        <aside className="hidden w-64 border-r bg-white lg:block">
+          <div className="p-4">
+            <Link to="/admin" className="text-sm font-semibold text-indigo-700">Admin</Link>
+          </div>
+          <nav className="px-2">
+            {items.map(it => (
+              <NavItem key={it.to} to={it.to} end={it.end}>{it.label}</NavItem>
+            ))}
+          </nav>
         </aside>
-        <main className="min-h-[calc(100vh-56px)] w-full p-4 lg:ml-0">{children}</main>
+        <main className="mx-auto w-full max-w-7xl p-4">
+          {children}
+        </main>
       </div>
-    </div>
+    </>
   );
 }
