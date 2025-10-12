@@ -2,52 +2,60 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import path from "node:path";
+
 import health from "@/routes/health";
-import { errorHandler } from "@/lib/errorHandler";
-import { env } from "@/lib/env";
+import auth from "@/routes/auth";
+import documents from "@/routes/documents";
+import mountSearch from "@/routes/search";
 
-const app = express();
-app.use(helmet());
-const allowedOrigins = ["http://localhost:5173"];
-if (env.FRONTEND_ORIGIN) allowedOrigins.push(env.FRONTEND_ORIGIN);
+export default function createApp() {
+  const app = express();
 
-app.use(cors({ origin: allowedOrigins, credentials: true }));
-app.use(express.json({ limit: "25mb" }));
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+  app.disable("x-powered-by");
+  app.use(helmet());
+  if (process.env.LOG_LEVEL !== "silent") {
+    app.use((req, res, next) => {
+      const start = Date.now();
+      res.on("finish", () => {
+        const duration = Date.now() - start;
+        console.log(
+          `[http] ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`
+        );
+      });
+      next();
+    });
+  }
+  app.use(express.json({ limit: "25mb" }));
+  app.use(express.urlencoded({ extended: true }));
+  app.use(cookieParser());
 
-// API routes
-app.use("/api", health);
-// TODO: app.use("/api/auth", authRoutes);
-// TODO: app.use("/api/documents", documentsRoutes);
-// TODO: app.use("/api/search", searchRoutes);
+  const allowed = (process.env.ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
-// Serve React build (single-page app)
-const publicDir = path.join(__dirname, "public");
+  app.use(
+    cors({
+      origin: (origin, cb) => {
+        if (!origin) return cb(null, true);
+        if (!allowed.length) return cb(null, true);
+        return cb(null, allowed.includes(origin));
+      },
+      credentials: true,
+    })
+  );
 
-// Cache hashed assets for a year, but do NOT cache index.html
-app.use(
-  express.static(publicDir, {
-    maxAge: "1y",
-    immutable: true,
-    setHeaders: (res, filePath) => {
-      // never cache the SPA shell
-      if (filePath.endsWith("index.html")) {
-        res.setHeader("Cache-Control", "no-store");
-      }
-    },
-  })
-);
+  app.get("/runtime-config.json", (_req, res) => {
+    res.setHeader("Cache-Control", "no-store");
+    res.json({
+      appName: process.env.APP_NAME || "DocSearchEngine",
+    });
+  });
 
-// SPA fallback (except /api)
-app.get("*", (req, res, next) => {
-  if (req.path.startsWith("/api")) return next();
-  res.setHeader("Cache-Control", "no-store");
-  res.sendFile(path.join(publicDir, "index.html"));
-});
+  app.use("/api", health);
+  app.use("/auth", auth);
+  app.use("/api/documents", documents);
+  mountSearch(app);
 
-// errors
-app.use(errorHandler);
-
-export default app;
+  return app;
+}

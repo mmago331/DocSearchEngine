@@ -1,9 +1,22 @@
-import axios from "axios";
+import axios, { type InternalAxiosRequestConfig } from "axios";
 
-const baseURL =
-  (typeof import.meta !== "undefined" &&
-    import.meta.env &&
-    (import.meta.env.VITE_API_URL as string | undefined)?.trim()) ||
-  undefined;
+// Same-origin by default; optional VITE_API_URL can override in non-prod cases.
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL ?? "/",
+});
 
-export const api = axios.create({ baseURL });
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    const headers: any = config.headers ?? {};
+    if (typeof headers.set === "function") {
+      headers.set("Authorization", `Bearer ${token}`);
+    } else {
+      (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+    }
+    config.headers = headers;
+  }
+  return config;
+});
+
+export { api };

@@ -7,6 +7,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json && shx cp -r src/migrations dist/migrations",
+    "postbuild": "node scripts/build-ui.mjs",
     "start": "node dist/server.js",
     "dev": "nodemon --watch src --exec \"ts-node src/server.ts\""
   },
