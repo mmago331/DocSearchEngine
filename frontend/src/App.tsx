@@ -1,57 +1,61 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import AppShell from "@/components/AppShell";
+// frontend/src/App.tsx
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import AppShell from "@/layout/AppShell";
 import { Protected, AdminOnly } from "@/components/Protected";
+
 import Home from "@/pages/Home";
 import Explore from "@/pages/Explore";
 import Library from "@/pages/Library";
+import DocumentPage from "@/pages/DocumentPage";
+
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
-import AdminShell from "@/components/AdminShell";
+import Dashboard from "@/pages/admin/Dashboard";
+import AdminDocuments from "@/pages/admin/Documents";
+
+function ProtectedShell() {
+  return (
+    <Protected>
+      <AppShell>
+        <Outlet />
+      </AppShell>
+    </Protected>
+  );
+}
 
 export default function App() {
   return (
     <Routes>
-      {/* Auth pages – bare layout */}
+      {/* Auth pages — NO shell */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* App layout – protected */}
-      <Route element={<AppShell />}>
+      {/* All other pages — protected + shell */}
+      <Route element={<ProtectedShell />}>
+        <Route index element={<Home />} />
+        <Route path="explore" element={<Explore />} />
+        <Route path="library" element={<Library />} />
+        <Route path="documents/:id" element={<DocumentPage />} />
         <Route
-          path="/"
-          element={(
-            <Protected>
-              <Home />
-            </Protected>
-          )}
-        />
-        <Route
-          path="/library"
-          element={(
-            <Protected>
-              <Library />
-            </Protected>
-          )}
-        />
-        <Route
-          path="/explore"
-          element={(
-            <Protected>
-              <Explore />
-            </Protected>
-          )}
-        />
-        <Route
-          path="/admin/*"
-          element={(
+          path="admin"
+          element={
             <AdminOnly>
-              <AdminShell />
+              <Dashboard />
             </AdminOnly>
-          )}
+          }
+        />
+        <Route
+          path="admin/documents"
+          element={
+            <AdminOnly>
+              <AdminDocuments />
+            </AdminOnly>
+          }
         />
       </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
