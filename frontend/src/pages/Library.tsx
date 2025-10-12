@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 import { Button, Input, Card, CardBody, Table, Th, Td, Badge } from "@/ui/primitives";
 import { useToast } from "@/ui/toast";
 
