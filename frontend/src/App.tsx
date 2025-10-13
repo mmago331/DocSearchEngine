@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, Outlet } from "react-router-dom";
 import AppShell from "@/layout/AppShell";
 import Admin from "@/pages/Admin";
 import DocumentPage from "@/pages/DocumentPage";
@@ -10,6 +10,7 @@ import Search from "@/pages/Search";
 
 const isAuthed = () => !!localStorage.getItem("token");
 
+// Only mounts AppShell if authed, otherwise bounce to /login
 const AuthedShell = () => (isAuthed() ? <AppShell /> : <Navigate to="/login" replace />);
 
 export default function App() {

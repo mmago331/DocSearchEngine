@@ -4,8 +4,8 @@ import { Card, CardBody, Button } from "@/ui/primitives";
 export default function Register() {
   const nav = useNavigate();
   return (
-    <div className="mx-auto mt-16 max-w-md">
-      <Card>
+    <div className="flex min-h-screen items-center justify-center p-6">
+      <Card className="w-full max-w-md">
         <CardBody className="space-y-4">
           <h1 className="text-xl font-semibold">Registration</h1>
           <p className="text-sm text-gray-600">
