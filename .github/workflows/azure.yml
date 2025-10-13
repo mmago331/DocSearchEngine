@@ -20,16 +20,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
-      # Build both workspaces. This repo already expects a root build that
-      # compiles the backend and moves the frontend into backend/dist/public.
+      # Install all workspaces (root + backend + frontend) in one shot
+      - name: Install deps (workspaces)
+        run: npm ci --workspaces --include-workspace-root
+
+      # Your root "build" orchestrates both: builds frontend & backend and
+      # copies frontend/dist into backend/dist/public
       - name: Build app (frontend + backend)
-        run: |
-          npm --prefix frontend install --include=dev --no-audit --no-fund
-          npm --prefix frontend run build
-          npm --prefix backend install --include=dev --no-audit --no-fund
-          npm --prefix backend run build
-          node -e "fs=require('fs');p='backend/dist/public';fs.mkdirSync(p,{recursive:true});fs.cpSync('frontend/dist',p,{recursive:true});"
+        run: npm run build
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -38,9 +38,9 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B973AA95BDDB4C49A6975085CA622576 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_08053C01490A49349B359E2FE8EA0628 }}
 
-      # Ship the repo. Azure (Oryx) will run `npm install` + your build + `npm start`.
+      # Deploy the repo; Azure will run Oryx build and then `npm start`
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'docsearchengine-amd3dvf7hch0cnax'  # << exact Prod app name
+          app-name: 'docsearchengine-amd3dvf7hch0cnax'  # your prod site
           package: .
