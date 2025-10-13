@@ -1,4 +1,4 @@
-name: Deploy (prod)
+name: deploy (prod)
 
 on:
   push:
@@ -12,34 +12,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use Node 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      # Build FE + BE the way your repo expects
-      - name: Install (workspaces)
-        run: npm ci --workspaces --include-workspace-root
-
-      - name: Build frontend
-        run: npm run -w frontend build
-
-      - name: Build backend
-        run: npm run -w backend build
-
-      - name: Copy frontend into backend public
+      # Install runtime deps so node_modules is included in the zip
+      - name: Install backend (prod only)
         run: |
-          mkdir -p backend/dist/public
-          cp -r frontend/dist/* backend/dist/public/
+          cd backend
+          npm ci --omit=dev
 
-      # Create minimal backend bundle (prod deps only)
-      - name: Reinstall backend (prod only) and zip
+      - name: Zip backend
         run: |
-          rm -rf backend/node_modules
-          (cd backend && npm ci --omit=dev)
-          (cd backend && zip -r ../backend.zip package.json package-lock.json dist node_modules)
+          cd backend
+          zip -r ../backend.zip .
+          cd ..
 
-      # ---- NEVER REMOVE THIS BLOCK ----
+      # ---- DO NOT REMOVE ----
       - name: Login to Azure
         uses: azure/login@v2
         with:
