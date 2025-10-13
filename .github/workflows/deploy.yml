@@ -2,11 +2,9 @@ name: deploy (prod)
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
-# REQUIRED for OIDC
 permissions:
   id-token: write
   contents: read
@@ -23,9 +21,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
 
+      # install only the backend, prod deps only
       - name: Install backend (prod only)
         working-directory: backend
         run: |
@@ -37,7 +34,7 @@ jobs:
           zip -r ../backend.zip package.json package-lock.json server.js public node_modules
           cd ..
 
-      # ---- DO NOT REMOVE (your OIDC secrets) ----
+      # ---- NEVER REMOVE THIS BLOCK ----
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -45,26 +42,8 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B973AA95BDDB4C49A6975085CA622576 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_08053C01490A49349B359E2FE8EA0628 }}
 
-      - name: Sanity: show subscription and find the app
-        run: |
-          echo "== Subscription in use =="
-          az account show --query "{id:id, name:name}" -o tsv
-          echo "== Search for webapp =="
-          az webapp list --query "[?name=='docsearchengine-amd3dvf7hch0cnax'].[name,resourceGroup,location,id]" -o tsv
-
-      - name: Deploy to Azure Web App (OIDC)
-        id: deploy_oidc
-        continue-on-error: true
+      - name: Deploy to Azure Web App (prod)
         uses: azure/webapps-deploy@v3
         with:
           app-name: docsearchengine-amd3dvf7hch0cnax
           package: backend.zip
-
-      # Fallback only if OIDC deploy didn't succeed AND publish profile exists
-      - name: Deploy with Publish Profile (fallback)
-        if: ${{ steps.deploy_oidc.outcome != 'success' && secrets.AZUREAPPSERVICE_PUBLISH_PROFILE != '' }}
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: docsearchengine-amd3dvf7hch0cnax
-          package: backend.zip
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISH_PROFILE }}
