@@ -1,21 +1,16 @@
 # DocSearchEngine
 
-DocSearchEngine is a full-stack PDF ingestion and semantic search platform. Admins can upload PDF documents and run fast full-text queries that return highlighted snippets for each page. The project combines a modern React interface with a TypeScript/Express API backed by PostgreSQL full-text search.
+DocSearchEngine is a minimal Express + TypeScript starter that serves a password-protected admin interface for upcoming document-search features. The current build renders simple HTML pages, protects them with a session-based login form, and exposes stubbed JSON endpoints for same-origin API calls.
 
 ## Features
-- **Secure admin access** – environment-configured admin credentials with session-based login.
-- **Document ingestion** – upload PDF files up to 25&nbsp;MB, automatically extract per-page text, and manage document visibility (private or public).
-- **Full-text search** – powered by PostgreSQL `tsvector`/`tsquery` with ranked results and highlighted snippets. Supports filtering by document and paginated responses.
-- **Document management UI** – browse uploaded documents, inspect individual pages, and search across personal or shared content from the React frontend.
+- **Session login** – username/password are configured through environment variables and stored in the current session.
+- **Server-rendered pages** – HTML layouts (home, search, explore, library, admin) are produced directly by Express.
+- **Same-origin API stubs** – `/api/search` returns placeholder data that can be replaced with a real search implementation.
 
 ## Tech stack
-- **Frontend:** React 18, Vite, Tailwind CSS, React Router, Heroicons.
-- **Backend:** Express 4 with TypeScript, Zod validation, Multer for uploads, session-based auth, PostgreSQL client (`pg`).
-- **Infrastructure:** PostgreSQL 16 (via Docker Compose), PDF parsing with `pdfjs-dist`, shared types published through a `shared/` workspace.
-
-## Prerequisites
-- Node.js **20+** and npm **9+** (workspace-aware commands are used throughout the repo).
-- Docker (optional but recommended) to launch the local PostgreSQL instance with `docker compose`.
+- **Runtime:** Node.js 20+, Express 4
+- **Language:** TypeScript (compiled to ES2022 modules)
+- **Tooling:** `ts-node-dev` for development, `typescript` for builds, `helmet` + `express-session` for security primitives
 
 ## Getting started
 1. **Install dependencies**
@@ -25,94 +20,45 @@ DocSearchEngine is a full-stack PDF ingestion and semantic search platform. Admi
 
 2. **Configure environment variables**
    ```bash
-   cp backend/.env.example backend/.env
+   cp .env.example .env
    ```
-   Adjust `DATABASE_URL`, `PORT`, `ADMIN_USER`, `ADMIN_PASS`, and `SESSION_SECRET` as needed.
+   Update the values to match your desired admin credentials and secrets.
 
-3. **Start PostgreSQL**
+3. **Run the development server**
    ```bash
-   docker compose up -d
+   npm run dev
    ```
+   The app listens on `http://localhost:4000` by default.
 
-4. **Run database migrations**
+4. **Build for production**
    ```bash
-   npm run migrate:up --workspace backend
+   npm run build
    ```
-
-5. **Build the frontend UI**
-   ```bash
-   npm run build --workspace frontend
-   ```
-
-6. **Start the API server**
-   ```bash
-   npm run dev --workspace backend
-   ```
-   The server listens on port `4000`, serves the compiled frontend, and exposes `/api/*` endpoints (along with the session-based `/login` page) from the same origin.
-
-Once both services are running, sign in at `/login` with your configured admin credentials, upload PDF documents, and try searching for phrases to see highlighted results from the indexed pages.
+   Compiled assets are emitted to `dist/`.
 
 ## Project structure
 ```
 .
-├── backend/            # Express API source, migrations, and scripts
-├── frontend/           # React single-page application
-├── shared/             # Placeholder for cross-package TypeScript types
-├── docker-compose.yml  # Local PostgreSQL service definition
-└── README.md           # You are here
+├── public/         # Static assets served as-is
+├── src/            # Express server and routes
+├── .env.example    # Sample environment configuration
+├── package.json    # Node package manifest
+└── README.md       # Project documentation
 ```
 
-### Backend scripts
-Run any workspace script with `npm run <name> --workspace backend`:
-- `ci` – install dependencies in CI environments with a clean `node_modules`.
-- `dev` – start the API in watch mode (tsx).
-- `build` – compile to `dist/`, rewrite path aliases, and copy migrations.
-- `start` – run the compiled server.
-- `typecheck` – TypeScript type checking without emitting output.
-- `migrate:up` / `migrate:down` – apply or roll back database migrations.
-
-### Root scripts
-- `npm run build` – build the frontend and backend, then copy the bundled UI into `backend/dist/public` for deployment.
-- `npm start` – run the compiled backend (serves both the API and built frontend).
-
-### Frontend scripts
-Run with `npm run <name> --workspace frontend`:
-- `build` – type-check and bundle for production.
-- `preview` – preview the production build locally.
-
-> Note: We do not use a separate Vite dev server for this app. Build with `npm run build --workspace frontend` and run the backend, which serves the compiled UI.
-
-## Frontend–Backend topology
-
-The frontend is compiled with Vite and the **built assets are served by the backend Express app** from `backend/dist/public`.
-All browser requests use **same-origin** paths (e.g., `/login`, `/api/*`). The browser calls the API at the same origin (no extra env needed). No Vite client env variables or dev proxy are used.
-
 ## Environment variables
-The backend reads configuration from `backend/.env`:
-
 | Variable | Description |
 | --- | --- |
-| `NODE_ENV` | Runtime mode (`development`, `production`, etc.). |
-| `PORT` | HTTP port for the API server (defaults to `4000`). |
-| `DATABASE_URL` | Connection string for PostgreSQL. |
+| `NODE_ENV` | Runtime mode (e.g., `development`, `production`). |
+| `PORT` | HTTP port for the server (defaults to `4000`). |
 | `SESSION_SECRET` | Secret used to sign Express session cookies. |
-| `ADMIN_USER` | Admin username accepted by the session login form. |
-| `ADMIN_PASS` | Admin password accepted by the session login form. |
-| `SEARCH_TEXT_CONFIG` | PostgreSQL text search configuration (defaults to `english`). |
+| `ADMIN_USER` | Admin username accepted by the login form. |
+| `ADMIN_PASS` | Admin password accepted by the login form. |
 
-Update this table whenever environment requirements change.
-
-> Frontend uses same-origin requests. Do **not** set a client API base URL.
+Keep this table up to date when configuration needs change.
 
 ## Testing
-No automated tests are defined yet. When you add tests, document the commands to run them in this section.
+No automated tests are defined yet. Add test commands here when they become available.
 
-## Additional resources
-- [`backend/README.md`](backend/README.md) – backend-specific notes.
-- [`shared/README.md`](shared/README.md) – guidance for shared types.
-
-## Deployment status
-- ✅ Build and deploy are currently green using the existing Azure workflow.
-- The workflow deploys via the publish-profile action and **must not be modified without prior coordination**.
-- The pipeline builds the frontend with Vite, copies the generated assets into `backend/dist/public`, and zips the backend for deployment. This configuration is correct and should remain in place.
-
+## Deployment
+Run `npm run build` and then `npm start` to launch the compiled server from the `dist/` directory. Static assets from `public/` are copied into `dist/public` during the build step.
