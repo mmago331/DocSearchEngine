@@ -19,15 +19,15 @@ app.use(express.json());
 // health
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
-// static files
-app.use(express.static(path.join(__dirname, "public"), { index: "index.html", maxAge: "1h" }));
-
 // fake login endpoint
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: "Missing credentials" });
   return res.json({ ok: true });
 });
+
+// static files
+app.use(express.static(path.join(__dirname, "public"), { index: "index.html", maxAge: "1h" }));
 
 // fallback
 app.use((_req, res) => res.sendFile(path.join(__dirname, "public", "index.html")));
