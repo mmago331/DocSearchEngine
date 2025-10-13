@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 import express from "express";
 import session from "express-session";
@@ -13,6 +14,10 @@ import searchRoutes from "./routes/search.js";
 
 const PgStore = connectPg(session);
 const app = express();
+
+const pkg = JSON.parse(
+  fs.readFileSync(path.join(process.cwd(), "package.json"), "utf-8")
+) as { version?: string };
 
 app.set("views", path.join(process.cwd(), "src", "views"));
 app.set("view engine", "ejs");
@@ -64,6 +69,13 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use((req, res, next) => {
+  if ((req.headers.accept || "").includes("text/html")) {
+    res.setHeader("Cache-Control", "no-store");
+  }
+  next();
+});
+
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -85,6 +97,10 @@ app.use(
     cookie: { sameSite: "lax" }
   })
 );
+
+app.get("/__version", (_req, res) => {
+  res.json({ version: pkg.version ?? "unknown", time: new Date().toISOString() });
+});
 
 app.use(express.static(path.join(process.cwd(), "public")));
 
