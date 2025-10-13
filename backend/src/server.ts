@@ -10,8 +10,7 @@ const publicDir = path.join(__dirname, "public");
 
 const app = express();
 
-app.use(express.json({ limit: "25mb" }));
-app.use(express.urlencoded({ extended: true }));
+app.set("trust proxy", 1); // required for secure cookies behind Azure's proxy
 
 app.use(
   session({
@@ -21,11 +20,14 @@ app.use(
     cookie: {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: true,
       path: "/",
     },
   })
 );
+
+app.use(express.json({ limit: "25mb" }));
+app.use(express.urlencoded({ extended: true }));
 
 createApp(app);
 
@@ -38,8 +40,7 @@ app.post("/auth/login", async (req, res) => {
       email.trim().toLowerCase() === String(process.env.ADMIN_EMAIL || "").trim().toLowerCase() &&
       password === String(process.env.ADMIN_PASSWORD || "");
     if (!ok) return res.status(401).json({ ok: false, error: "invalid_credentials" });
-    const session = (req as any).session;
-    if (session) session.user = { email };
+    if (req.session) req.session.user = { email };
     return res.json({ ok: true });
   } catch (e) {
     return res.status(500).json({ ok: false, error: "server_error" });
@@ -47,13 +48,12 @@ app.post("/auth/login", async (req, res) => {
 });
 
 app.post("/auth/logout", (req, res) => {
-  const session = (req as any).session;
-  if (!session) return res.json({ ok: true });
-  session.destroy(() => res.json({ ok: true }));
+  if (!req.session) return res.json({ ok: true });
+  req.session.destroy(() => res.json({ ok: true }));
 });
 
 app.get("/auth/me", (req, res) => {
-  const user = (req as any).session?.user;
+  const user = req.session?.user;
   if (user) return res.json({ ok: true, user });
   return res.status(401).json({ ok: false });
 });
@@ -69,7 +69,7 @@ const publicOk = (p: string) =>
   p.startsWith("/robots.txt");
 
 app.use((req, res, next) => {
-  const user = (req as any).session?.user;
+  const user = req.session?.user;
   if (!user && req.method === "GET" && !publicOk(req.path) && req.path !== "/login" && req.path !== "/register") {
     return res.redirect("/login");
   }
