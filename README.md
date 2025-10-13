@@ -84,8 +84,8 @@ Run with `npm run <name> --workspace frontend`:
 
 ## Frontend–Backend topology
 
-The frontend is compiled with Vite and the **built assets are served by the backend Express app** from `backend/dist/public`.  
-All browser requests use **same-origin** paths (e.g., `/auth/*`, `/api/*`). No Vite client env (e.g., `VITE_API_URL`) or dev proxy is used.
+The frontend is compiled with Vite and the **built assets are served by the backend Express app** from `backend/dist/public`.
+All browser requests use **same-origin** paths (e.g., `/auth/*`, `/api/*`). No Vite client env variables or dev proxy are used.
 
 ## Environment variables
 The backend reads configuration from `backend/.env`:

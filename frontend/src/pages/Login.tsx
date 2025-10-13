@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 import { Button, Input, Card, CardBody } from "@/ui/primitives";
 
 export default function Login() {
@@ -16,7 +16,7 @@ export default function Login() {
 
     try {
       const r = await api.post("/auth/login", { email, password });
-      if (r.data?.ok) {
+      if (r.status === 200 && (r.data?.ok ?? true)) {
         nav("/search", { replace: true });
       } else {
         setError("login failed");
