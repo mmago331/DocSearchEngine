@@ -1,16 +1,18 @@
 # DocSearchEngine
 
-DocSearchEngine is a minimal Express + TypeScript starter that serves a password-protected admin interface for upcoming document-search features. The current build renders simple HTML pages, protects them with a session-based login form, and exposes stubbed JSON endpoints for same-origin API calls.
+DocSearchEngine is a server-rendered document search portal built with Express and TypeScript. Upload PDFs, extract their text into PostgreSQL, and search across the content with full-text queries.
 
 ## Features
-- **Session login** – username/password are configured through environment variables and stored in the current session.
-- **Server-rendered pages** – HTML layouts (home, search, explore, library, admin) are produced directly by Express.
-- **Same-origin API stubs** – `/api/search` returns placeholder data that can be replaced with a real search implementation.
+- **User accounts with sessions** – Register directly in the UI or fall back to `.env`-provided admin credentials.
+- **PDF ingestion** – Upload PDFs, split them into per-page records, and store content in PostgreSQL for fast lookup.
+- **Full-text search** – Query your private library and public documents with PostgreSQL trigram indexes.
+- **Server-rendered UI** – Catalyst-inspired layouts rendered with EJS and styled via Tailwind CSS.
 
 ## Tech stack
-- **Runtime:** Node.js 20+, Express 4
+- **Runtime:** Node.js 18+, Express 4, EJS templates
 - **Language:** TypeScript (compiled to ES2022 modules)
-- **Tooling:** `ts-node-dev` for development, `typescript` for builds, `helmet` + `express-session` for security primitives
+- **Database:** PostgreSQL with `pg_trgm` and GIN indexes
+- **Styling:** Tailwind CSS
 
 ## Getting started
 1. **Install dependencies**
@@ -22,43 +24,53 @@ DocSearchEngine is a minimal Express + TypeScript starter that serves a password
    ```bash
    cp .env.example .env
    ```
-   Update the values to match your desired admin credentials and secrets.
+   Update the values to match your local secrets and database connection string.
 
-3. **Run the development server**
+3. **Run database migrations**
+   ```bash
+   npm run migrate:up
+   ```
+
+4. **Run the development server**
    ```bash
    npm run dev
    ```
    The app listens on `http://localhost:4000` by default.
 
-4. **Build for production**
+5. **Build for production**
    ```bash
    npm run build
    ```
-   Compiled assets are emitted to `dist/`.
+   Compiled assets are emitted to `dist/` and Tailwind builds `public/styles.css`.
 
 ## Project structure
 ```
 .
-├── public/         # Static assets served as-is
-├── src/            # Express server and routes
-├── .env.example    # Sample environment configuration
-├── package.json    # Node package manifest
-└── README.md       # Project documentation
+├── migrations/      # SQL migrations
+├── public/          # Static assets (generated CSS)
+├── scripts/         # Build scripts
+├── src/             # Express server, routes, views
+├── styles/          # Tailwind input styles
+├── .env.example     # Sample environment configuration
+├── package.json     # Node package manifest
+└── README.md        # Project documentation
 ```
 
 ## Environment variables
 | Variable | Description |
 | --- | --- |
-| `NODE_ENV` | Runtime mode (e.g., `development`, `production`). |
+| `NODE_ENV` | Runtime mode (`development`, `production`, etc.). |
 | `PORT` | HTTP port for the server (defaults to `4000`). |
 | `SESSION_SECRET` | Secret used to sign Express session cookies. |
-| `ADMIN_USER` | Admin username accepted by the login form. |
-| `ADMIN_PASS` | Admin password accepted by the login form. |
+| `DATABASE_URL` | PostgreSQL connection string used by the app and migrations. |
+| `ADMIN_USER` | Optional bootstrap admin email accepted by the login form. |
+| `ADMIN_PASS` | Optional bootstrap admin password accepted by the login form. |
 
-Keep this table up to date when configuration needs change.
+## Database
+Run `npm run migrate:up` to apply the initial schema. The migration enables the `pg_trgm` extension, creates tables for users, documents, and per-page text, and adds indexes that power full-text search.
 
 ## Testing
 No automated tests are defined yet. Add test commands here when they become available.
 
 ## Deployment
-Run `npm run build` and then `npm start` to launch the compiled server from the `dist/` directory. Static assets from `public/` are copied into `dist/public` during the build step.
+Run `npm run build` and then `npm start` to launch the compiled server from the `dist/` directory.

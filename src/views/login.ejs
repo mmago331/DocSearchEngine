@@ -1,0 +1,18 @@
+<% layout('_login_layout', { title: 'Login' }) %>
+<div class="w-full max-w-md rounded-2xl border bg-white p-6 shadow-sm">
+  <h1 class="mb-1 text-lg font-semibold">Sign in</h1>
+  <p class="mb-3 text-sm text-gray-500">Admin access</p>
+  <% if (error) { %>
+    <div class="mb-3 rounded-md bg-red-50 p-2 text-sm text-red-700">Invalid email or password.</div>
+  <% } %>
+  <form method="post" action="/login" class="space-y-3">
+    <div><label class="block text-sm font-medium">Email</label>
+      <input name="email" type="email" required class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+    </div>
+    <div><label class="block text-sm font-medium">Password</label>
+      <input name="password" type="password" required class="block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500" />
+    </div>
+    <button class="inline-flex w-full items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500">Login</button>
+  </form>
+  <p class="mt-3 text-center text-sm"><a href="/register" class="text-indigo-600 hover:underline">No account? Register</a></p>
+</div>
