@@ -5,13 +5,14 @@ dotenv.config();
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  PORT: z.string().default("8080"),
-  DATABASE_URL: z.string().url(),
-  JWT_SECRET: z.string().min(32),
-
-  // New (all optional except minimums when provided)
-  ADMIN_EMAIL: z.string().email().optional(),
-  ADMIN_PASSWORD: z.string().min(8).optional(),
+  PORT: z.string().default("4000"),
+  DATABASE_URL: z
+    .string()
+    .default("postgres://docsearch:docsearch@localhost:5432/docsearch"),
+  // Session + admin creds (mirror Proxy)
+  SESSION_SECRET: z.string().min(12).default("please_change_me"),
+  ADMIN_USER: z.string().default("admin@example.com"),
+  ADMIN_PASS: z.string().default("change_me"),
 });
 
 export const env = envSchema.parse(process.env);

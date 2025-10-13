@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 import { Card, CardBody, Table, Th, Td, Button, Badge } from "@/ui/primitives";
 import { useToast } from "@/ui/toast";
 
@@ -9,7 +9,7 @@ export default function AdminDocuments() {
 
   const load = async () => {
     try {
-      const { data } = await api.get<{ documents?: any[] }>("/api/documents");
+      const { data } = await api.get<{ documents?: any[] }>("/documents");
       setDocs(data?.documents || []);
     } catch (error: any) {
       const message = error?.response?.data?.error || "Load failed";
@@ -38,7 +38,7 @@ export default function AdminDocuments() {
                       variant="ghost"
                       onClick={async () => {
                         try {
-                          await api.delete(`/api/documents/${d.id}`);
+                          await api.delete(`/documents/${d.id}`);
                         } catch (error: any) {
                           const message = error?.response?.data?.error || "Delete failed";
                           push({ text: message, tone: "error" });
