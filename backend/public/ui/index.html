@@ -84,6 +84,92 @@
           Express serving both front and back.
         </p>
       </section>
+
+      <!-- existing "Next" section stays -->
+
+      <!-- Results -->
+      <section id="results-card" class="mt-8 rounded-2xl border bg-white p-6 shadow-sm hidden">
+        <div class="mb-4 flex items-center justify-between">
+          <h3 class="text-base font-semibold">Results</h3>
+          <span id="results-meta" class="text-sm text-slate-500"></span>
+        </div>
+        <ul id="results-list" class="divide-y divide-slate-200"></ul>
+      </section>
+
+      <script>
+        (function () {
+          const q = document.getElementById('q');
+          const filter = document.getElementById('filter');
+          const btnApply = document.querySelector('button[type="button"].apply-btn') || document.querySelector('button:contains("Apply")');
+
+          // Attach explicit classes so we can target reliably
+          document.querySelectorAll('button').forEach(b => {
+            if (b.textContent.trim() === 'Apply') b.classList.add('apply-btn');
+            if (b.textContent.trim() === 'Cancel') b.classList.add('cancel-btn');
+          });
+
+          const resultsCard = document.getElementById('results-card');
+          const resultsList = document.getElementById('results-list');
+          const resultsMeta = document.getElementById('results-meta');
+
+          async function runSearch(ev) {
+            ev?.preventDefault?.();
+            const payload = { q: q.value || '', filter: filter.value || 'All' };
+
+            // optimistic UI
+            resultsCard.classList.remove('hidden');
+            resultsList.innerHTML = `
+              <li class="py-6">
+                <div class="text-sm text-slate-500">Searching…</div>
+              </li>`;
+
+            try {
+              const res = await fetch('/api/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              const data = await res.json();
+
+              resultsMeta.textContent = `${data.count ?? 0} result(s)`;
+              resultsList.innerHTML = (data.items || []).map(item => `
+                <li class="py-6">
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <h4 class="text-sm font-semibold text-slate-900">${item.title}</h4>
+                      <p class="mt-1 text-sm text-slate-600">${item.snippet}</p>
+                      <div class="mt-2 text-xs text-slate-500">Updated: ${item.updatedAt ?? ''}</div>
+                    </div>
+                    <div class="shrink-0 text-xs rounded-md bg-slate-100 px-2 py-1 text-slate-700">Score: ${item.score?.toFixed?.(2) ?? '—'}</div>
+                  </div>
+                </li>
+              `).join('') || `
+                <li class="py-6">
+                  <div class="text-sm text-slate-500">No results.</div>
+                </li>`;
+            } catch (err) {
+              console.error(err);
+              resultsMeta.textContent = '';
+              resultsList.innerHTML = `
+                <li class="py-6">
+                  <div class="text-sm text-red-600">Search failed. Please try again.</div>
+                </li>`;
+            }
+          }
+
+          // Wire Apply + Enter key
+          document.querySelector('.apply-btn')?.addEventListener('click', runSearch);
+          q.addEventListener('keydown', e => { if (e.key === 'Enter') runSearch(e); });
+
+          // Optional: Cancel clears and hides results
+          document.querySelector('.cancel-btn')?.addEventListener('click', () => {
+            q.value = '';
+            resultsCard.classList.add('hidden');
+            resultsList.innerHTML = '';
+            resultsMeta.textContent = '';
+          });
+        })();
+      </script>
     </main>
   </body>
 </html>
