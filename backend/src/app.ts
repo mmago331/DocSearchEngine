@@ -1,6 +1,5 @@
 import express, { type Application } from "express";
 import helmet from "helmet";
-import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import health from "./routes/health";
@@ -29,22 +28,6 @@ export default function createApp(app?: Application) {
     configuredApp.use(express.urlencoded({ extended: true }));
   }
   configuredApp.use(cookieParser());
-
-  const allowed = (process.env.ALLOWED_ORIGINS || "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
-
-  configuredApp.use(
-    cors({
-      origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
-        if (!origin) return cb(null, true);
-        if (!allowed.length) return cb(null, true);
-        return cb(null, allowed.includes(origin));
-      },
-      credentials: true,
-    })
-  );
 
   configuredApp.get("/runtime-config.json", (_req, res) => {
     res.setHeader("Cache-Control", "no-store");

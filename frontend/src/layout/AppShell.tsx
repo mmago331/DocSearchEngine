@@ -1,12 +1,19 @@
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useState, type ReactNode } from "react";
 
 type AppShellProps = {
   children?: ReactNode;
 };
 
+const AUTH_ROUTES = new Set(["/login", "/register"]);
+
 export default function AppShell({ children }: AppShellProps) {
+  const location = useLocation();
   const [open, setOpen] = useState(false);
+
+  if (AUTH_ROUTES.has(location.pathname.toLowerCase())) {
+    return <Outlet />;
+  }
 
   const Item = ({ to, children: itemChildren }: { to: string; children: ReactNode }) => (
     <NavLink
