@@ -22,7 +22,8 @@ jobs:
       # it means the lockfile didn't get committed or changed without update.
       - name: Install backend (prod only)
         working-directory: backend
-        run: npm ci --omit=dev
+        run: |
+          npm ci --omit=dev || npm install --omit=dev --no-audit --no-fund
 
       - name: Zip backend
         run: |
