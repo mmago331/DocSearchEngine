@@ -1,35 +1,46 @@
-name: Deploy (Azure builds from source)
+name: Deploy (prod)
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write   # required by azure/login@v2 to request the OIDC token
-      contents: read    # required for actions/checkout and artifact steps
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # DO NOT CHANGE the three lines below. Paste your existing values exactly.
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Build both workspaces. This repo already expects a root build that
+      # compiles the backend and moves the frontend into backend/dist/public.
+      - name: Build app (frontend + backend)
+        run: |
+          npm --prefix frontend install --include=dev --no-audit --no-fund
+          npm --prefix frontend run build
+          npm --prefix backend install --include=dev --no-audit --no-fund
+          npm --prefix backend run build
+          node -e "fs=require('fs');p='backend/dist/public';fs.mkdirSync(p,{recursive:true});fs.cpSync('frontend/dist',p,{recursive:true});"
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          # <— keep exactly as in your file
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_449C2286F0BB4D8C87DDDFD5D1F23817 }}
-          # <— keep exactly as in your file
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B973AA95BDDB4C49A6975085CA622576 }}
-          # <— keep exactly as in your file
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_08053C01490A49349B359E2FE8EA0628 }}
 
-      # Ship the repo as-is. Azure Oryx will install, build and start the app using your App Settings.
+      # Ship the repo. Azure (Oryx) will run `npm install` + your build + `npm start`.
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: DocSearchEngine
+          app-name: 'docsearchengine-amd3dvf7hch0cnax'  # << exact Prod app name
           package: .
