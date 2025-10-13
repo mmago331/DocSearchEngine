@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DocSearchEngine — UI Sandbox</title>
+
+  <!-- Tailwind CDN (prototype mode; no build step yet) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Optional: extend Tailwind a bit for nicer defaults
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50:  '#eef2ff',
+              500: '#111827', /* match current button color */
+              600: '#0b1220'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Keep it small and safe for now; we’ll switch to compiled CSS later */
+    .container { max-width: 1100px; margin: 0 auto; }
+  </style>
+</head>
+<body class="h-full">
+  <header class="bg-white border-b border-slate-200">
+    <div class="container px-4 py-4 flex items-center justify-between">
+      <h1 class="text-xl font-semibold text-slate-900">DocSearchEngine</h1>
+      <nav class="flex items-center gap-4">
+        <a href="/" class="text-sm text-slate-600 hover:text-slate-900">Login</a>
+        <a href="/health" class="text-sm text-slate-600 hover:text-slate-900">Health</a>
+        <a href="/ui" class="text-sm font-medium text-slate-900">UI Sandbox</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container px-4 py-10 space-y-8">
+    <!-- Example "Catalyst-like" panel composed with Tailwind utilities -->
+    <section class="bg-white rounded-xl shadow-sm ring-1 ring-black/5">
+      <div class="p-6 border-b border-slate-100">
+        <h2 class="text-lg font-semibold text-slate-900">Prototype Panel</h2>
+        <p class="mt-1 text-sm text-slate-600">
+          This page is for safe UI experiments. We’ll wire real Catalyst + build next.
+        </p>
+      </div>
+
+      <div class="p-6 grid gap-4 md:grid-cols-2">
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-slate-700">Search</label>
+          <input type="text" class="w-full rounded-lg border-slate-300 focus:border-slate-500 focus:ring-slate-500" placeholder="Try typing here…" />
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-slate-700">Filter</label>
+          <select class="w-full rounded-lg border-slate-300 focus:border-slate-500 focus:ring-slate-500">
+            <option>All</option>
+            <option>Documents</option>
+            <option>Notes</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="p-6 border-t border-slate-100 flex items-center justify-end gap-3">
+        <button class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50">Cancel</button>
+        <button class="px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800">Apply</button>
+      </div>
+    </section>
+
+    <!-- Simple CTA area -->
+    <section class="bg-white rounded-xl shadow-sm ring-1 ring-black/5 p-6">
+      <h3 class="text-base font-semibold text-slate-900">Next</h3>
+      <p class="mt-2 text-sm text-slate-600">
+        When this page looks good, we’ll install Tailwind + Catalyst via npm
+        and add a small build step while keeping Express serving both front and back.
+      </p>
+    </section>
+  </main>
+</body>
+</html>
