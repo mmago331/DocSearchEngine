@@ -3,31 +3,52 @@ name: deploy (prod)
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
-
-permissions:
-  id-token: write     # required for OIDC
-  contents: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
 
-      # No npm install/build here. We deploy the source and let App Service build.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
+      # Install runtime deps inside backend using its lockfile
+      - name: Install backend (prod only)
+        run: |
+          cd backend
+          npm ci --omit=dev
+
+      # Zip the backend folder so package.json is at the root of the zip,
+      # along with node_modules and public assets (Proxy style)
+      - name: Zip backend
+        run: |
+          cd backend
+          zip -r ../backend.zip .
+
+      # ---- DO NOT REMOVE ----  (keep your Azure login the way you prefer)
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_449C2286F0BB4D8C87DDDFD5D1F23817 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B973AA95BDDB4C49A6975085CA622576 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_08053C01490A49349B359E2FE8EA0628 }}
+          # EITHER OIDC (preferred) ...
+          # client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          # tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          # subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          # OR publish profile (what you already have):
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISH_PROFILE }}
 
-      - name: Deploy to Azure Web App (prod)
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'DocSearchEngine'     # <-- the Azure **resource** name
-          slot-name: 'Production'
-          package: .
+          app-name: docsearchengine-amd3dvf7hch0cnax
+          slot-name: Production
+          package: backend.zip
+
+      - name: Logout
+        if: always()
+        run: az logout
