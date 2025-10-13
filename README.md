@@ -39,17 +39,16 @@ DocSearchEngine is a full-stack PDF ingestion and semantic search platform. User
    npm run migrate:up --workspace backend
    ```
 
-5. **Start the API server**
+5. **Build the frontend UI**
+   ```bash
+   npm run build --workspace frontend
+   ```
+
+6. **Start the API server**
    ```bash
    npm run dev --workspace backend
    ```
    The server defaults to `http://localhost:8080`, serves the compiled frontend, and exposes `/auth`, `/documents`, and `/api/search` endpoints from the same origin.
-
-6. **Start the frontend** (in a second terminal)
-   ```bash
-   npm run dev --workspace frontend
-   ```
-   Vite serves the app at `http://localhost:5173` and proxies API calls to the same origin as the backend.
 
 Once both services are running, register a new account in the UI, upload PDF documents, and try searching for phrases to see highlighted results from the indexed pages.
 
@@ -78,9 +77,15 @@ Run any workspace script with `npm run <name> --workspace backend`:
 
 ### Frontend scripts
 Run with `npm run <name> --workspace frontend`:
-- `dev` – start the Vite dev server.
 - `build` – type-check and bundle for production.
 - `preview` – preview the production build locally.
+
+> Note: We do not use a separate Vite dev server for this app. Build with `npm run build --workspace frontend` and run the backend, which serves the compiled UI.
+
+## Frontend–Backend topology
+
+The frontend is compiled with Vite and the **built assets are served by the backend Express app** from `backend/dist/public`.  
+All browser requests use **same-origin** paths (e.g., `/auth/*`, `/api/*`). No Vite client env (e.g., `VITE_API_URL`) or dev proxy is used.
 
 ## Environment variables
 The backend reads configuration from `backend/.env`:
@@ -100,7 +105,7 @@ The backend reads configuration from `backend/.env`:
 
 Update this table whenever environment requirements change.
 
-The frontend talks to the backend via same-origin requests, so no additional Vite environment variables are required.
+> Frontend uses same-origin requests. Do **not** set a client API base URL.
 
 ## Testing
 No automated tests are defined yet. When you add tests, document the commands to run them in this section.
