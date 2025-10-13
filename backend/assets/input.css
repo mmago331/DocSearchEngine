@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* temporary brand tweaks; we can swap for Catalyst tokens later */
+:root {
+  --brand-900: #0f172a;
+}
+.btn-brand {
+  @apply px-4 py-2 rounded-lg bg-slate-900 text-white hover:bg-slate-800;
+}
