@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  id-token: write     # required for OIDC
+  id-token: write
   contents: read
 
 jobs:
@@ -16,8 +16,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # No npm install/build here. We deploy the source and let App Service build.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
+      # Install runtime deps inside backend (prod only) using its lockfile
+      - name: Install backend (prod only)
+        run: |
+          cd backend
+          npm ci --omit=dev
+
+      # Zip the backend folder so package.json is at the zip root (like Proxy)
+      - name: Zip backend
+        run: |
+          cd backend
+          zip -r ../backend.zip .
+
+      # ---- DO NOT REMOVE (Azure OIDC secrets) ----
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -28,6 +43,6 @@ jobs:
       - name: Deploy to Azure Web App (prod)
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'DocSearchEngine'     # <-- the Azure **resource** name
+          app-name: 'DocSearchEngine'      # App Service resource name (use the same value as Proxy uses)
           slot-name: 'Production'
-          package: .
+          package: backend.zip

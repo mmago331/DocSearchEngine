@@ -23,10 +23,11 @@
       e.preventDefault();
       const body = Object.fromEntries(new FormData(form));
       const r = await fetch("/api/login", {
-        method: "POST", headers: {"Content-Type":"application/json"},
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
       });
-        const data = await r.json();
+      const data = await r.json();
       msg.textContent = r.ok ? "Success." : (data.error || "Login failed");
     });
   </script>
