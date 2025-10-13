@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  id-token: write
+  id-token: write     # required for OIDC
   contents: read
 
 jobs:
@@ -14,27 +14,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Use Node 20
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      # No npm install/build here. We deploy the source and let App Service build.
 
-      # install only the backend, prod deps only
-      - name: Install backend (prod only)
-        working-directory: backend
-        run: |
-          npm ci --omit=dev || npm install --omit=dev --no-audit --no-fund
-
-      - name: Zip backend
-        run: |
-          cd backend
-          zip -r ../backend.zip package.json package-lock.json server.js public node_modules
-          cd ..
-
-      # ---- NEVER REMOVE THIS BLOCK ----
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -45,5 +28,6 @@ jobs:
       - name: Deploy to Azure Web App (prod)
         uses: azure/webapps-deploy@v3
         with:
-          app-name: docsearchengine-amd3dvf7hch0cnax
-          package: backend.zip
+          app-name: 'DocSearchEngine'     # <-- the Azure **resource** name
+          slot-name: 'Production'
+          package: .
