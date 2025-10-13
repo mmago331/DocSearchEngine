@@ -49,8 +49,7 @@ DocSearchEngine is a full-stack PDF ingestion and semantic search platform. User
    ```bash
    npm run dev --workspace frontend
    ```
-   Vite serves the app at `http://localhost:5173`.
-   Leave `VITE_API_URL` unset in production so the frontend uses the same-origin API; only set it locally when pointing at a custom backend.
+   Vite serves the app at `http://localhost:5173` and proxies API calls to the same origin as the backend.
 
 Once both services are running, register a new account in the UI, upload PDF documents, and try searching for phrases to see highlighted results from the indexed pages.
 
@@ -101,11 +100,7 @@ The backend reads configuration from `backend/.env`:
 
 Update this table whenever environment requirements change.
 
-The frontend also recognises the following Vite environment variable:
-
-| Variable | Description |
-| --- | --- |
-| `VITE_API_URL` | Base URL for API requests issued by the React app. Leave unset in production so the UI talks to the same origin as the backend; set to `http://localhost:8080` only for local development. |
+The frontend talks to the backend via same-origin requests, so no additional Vite environment variables are required.
 
 ## Testing
 No automated tests are defined yet. When you add tests, document the commands to run them in this section.

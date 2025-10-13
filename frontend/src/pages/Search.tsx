@@ -1,5 +1,5 @@
 import { useState } from "react";
-import api from "@/lib/api";
+import { api } from "@/lib/api";
 import { Button, Input, Card, CardBody, Badge } from "@/ui/primitives";
 
 type Row = {
@@ -11,7 +11,7 @@ type Row = {
   snippet: string | null;
 };
 
-export default function Home() {
+export default function Search() {
   const [q, setQ] = useState("");
   const [rows, setRows] = useState<Row[]>([]);
   const [err, setErr] = useState<string | null>(null);
