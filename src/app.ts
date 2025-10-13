@@ -102,7 +102,15 @@ app.get("/__version", (_req, res) => {
   res.json({ version: pkg.version ?? "unknown", time: new Date().toISOString() });
 });
 
-app.use(express.static(path.join(process.cwd(), "public")));
+const publicDir = (() => {
+  const distPublic = path.join(process.cwd(), "dist", "public");
+  if (fs.existsSync(distPublic)) {
+    return distPublic;
+  }
+  return path.join(process.cwd(), "public");
+})();
+
+app.use(express.static(publicDir));
 
 app.use(authRoutes);
 app.use(documentRoutes);
