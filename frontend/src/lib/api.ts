@@ -1,12 +1,11 @@
 import axios from "axios";
 
-/**
- * Same-origin Axios client.
- * No baseURL. All calls use relative paths (e.g. "/auth/login", "/api/search").
- */
-const api = axios.create({
-  // baseURL intentionally omitted -> same-origin
-  withCredentials: true, // include cookies if server sets any (sessions)
+// Same-origin API calls in all environments.
+// No Vite envs, no localhost defaults.
+export const api = axios.create({
+  baseURL: "",
+  withCredentials: true,
+  headers: { "Content-Type": "application/json" },
 });
 
 // Optional: attach bearer token if your app still stores one
@@ -15,5 +14,3 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
-
-export default api;

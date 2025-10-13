@@ -1,4 +1,4 @@
-import api from "./api";
+import { api } from "./api";
 
 export type User = { email: string } | null;
 
@@ -14,4 +14,5 @@ export async function getMe(): Promise<User> {
 
 export async function logout() {
   await api.post("/auth/logout");
+  localStorage.removeItem("token");
 }

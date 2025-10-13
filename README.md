@@ -48,7 +48,7 @@ DocSearchEngine is a full-stack PDF ingestion and semantic search platform. User
    ```bash
    npm run dev --workspace backend
    ```
-   The server defaults to `http://localhost:8080`, serves the compiled frontend, and exposes `/auth`, `/documents`, and `/api/search` endpoints from the same origin.
+   The server listens on port `8080`, serves the compiled frontend, and exposes `/auth`, `/documents`, and `/api/search` endpoints from the same origin.
 
 Once both services are running, register a new account in the UI, upload PDF documents, and try searching for phrases to see highlighted results from the indexed pages.
 
@@ -85,7 +85,7 @@ Run with `npm run <name> --workspace frontend`:
 ## Frontend–Backend topology
 
 The frontend is compiled with Vite and the **built assets are served by the backend Express app** from `backend/dist/public`.
-All browser requests use **same-origin** paths (e.g., `/auth/*`, `/api/*`). No Vite client env variables or dev proxy are used.
+All browser requests use **same-origin** paths (e.g., `/auth/*`, `/api/*`). The browser calls the API at the same origin (no extra env needed). No Vite client env variables or dev proxy are used.
 
 ## Environment variables
 The backend reads configuration from `backend/.env`:
@@ -98,7 +98,6 @@ The backend reads configuration from `backend/.env`:
 | `JWT_SECRET` | Secret used to sign JWT access tokens. |
 | `ADMIN_EMAIL` | Optional email address for seeding an initial admin user at startup. |
 | `ADMIN_PASSWORD` | Optional password for the seeded admin user (required if `ADMIN_EMAIL` is set). |
-| `ALLOWED_ORIGINS` | Optional comma-separated list of additional origins allowed by CORS. Leave unset to allow any origin. |
 | `APP_NAME` | Optional display name returned by `/runtime-config.json` for the UI to show. |
 | `LOG_LEVEL` | Set to `silent` to disable basic HTTP request logging. |
 | `SEARCH_TEXT_CONFIG` | PostgreSQL text search configuration (defaults to `english`). |
