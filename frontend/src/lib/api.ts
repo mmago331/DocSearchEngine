@@ -1,21 +1,23 @@
 // frontend/src/lib/api.ts
-import axios, { type InternalAxiosRequestConfig } from "axios";
+import axios from "axios";
 
-// Same-origin calls only. No baseURL, no localhost, no VITE_*.
-const api = axios.create({
-  // omit baseURL -> relative URLs use the current origin
+/**
+ * Same-origin client: we do NOT set baseURL.
+ * Every call uses a relative path (e.g. "/auth/login", "/api/search").
+ * This matches how the proxy app works on Azure App Service.
+ */
+export const api = axios.create({
+  // no baseURL — use same-origin
   withCredentials: true,
+  headers: {
+    "X-Requested-With": "fetch"
+  },
+  // Optional: small safety net for very slow calls
+  timeout: 30000
 });
 
-api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    const headers: any = config.headers ?? {};
-    if (typeof headers.set === "function") headers.set("Authorization", `Bearer ${token}`);
-    else headers["Authorization"] = `Bearer ${token}`;
-    config.headers = headers;
-  }
-  return config;
-});
-
+// Small helper wrappers (optional, keep if existing code imports these)
+export const get  = <T = any>(url: string, config?: any) => api.get<T>(url, config);
+export const post = <T = any>(url: string, data?: any, config?: any) => api.post<T>(url, data, config);
+export const del  = <T = any>(url: string, config?: any) => api.delete<T>(url, config);
 export default api;
