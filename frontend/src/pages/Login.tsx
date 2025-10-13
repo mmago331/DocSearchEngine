@@ -1,22 +1,28 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login } from "@/lib/auth";
+import { api } from "@/lib/api";
 import { Button, Input, Card, CardBody } from "@/ui/primitives";
 
 export default function Login() {
   const nav = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [err, setErr] = useState("");
+  const [error, setError] = useState("");
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setErr("");
+    setError("");
+    const form = new FormData(e.target as HTMLFormElement);
+    const email = String(form.get("email") || "");
+    const password = String(form.get("password") || "");
+
     try {
-      await login(email, password);
-      nav("/search", { replace: true });
+      const r = await api.post("/auth/login", { email, password });
+      if (r.data?.ok) {
+        nav("/search", { replace: true });
+      } else {
+        setError("login failed");
+      }
     } catch {
-      setErr("login failed");
+      setError("login failed");
     }
   }
 
@@ -26,14 +32,9 @@ export default function Login() {
         <CardBody>
           <h1 className="mb-4 text-xl font-semibold">Login</h1>
           <form onSubmit={onSubmit} className="grid gap-3">
-            <Input placeholder="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            <Input
-              type="password"
-              placeholder="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            {err && <p className="text-sm text-red-600">{err}</p>}
+            <Input name="email" placeholder="email" />
+            <Input type="password" name="password" placeholder="password" />
+            {error && <p className="text-sm text-red-600">{error}</p>}
             <Button type="submit">Login</Button>
             <p className="text-sm text-gray-600">
               No account? <Link to="/register" className="text-indigo-600">Register</Link>

@@ -1,4 +1,4 @@
-import api from "./api";
+import { api } from "./api";
 
 export type User = { email: string } | null;
 
@@ -9,15 +9,6 @@ export async function getMe(): Promise<User> {
   } catch (error: any) {
     if (error?.response?.status === 401) return null;
     return null;
-  }
-}
-
-export async function login(email: string, password: string) {
-  try {
-    await api.post("/auth/login", { email, password });
-  } catch (error: any) {
-    const message = error?.response?.data?.error || "login_failed";
-    throw new Error(message);
   }
 }
 
