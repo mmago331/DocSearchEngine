@@ -1,4 +1,4 @@
-import type { Request, Response, Router } from "express";
+import type { Application, Request, Response } from "express";
 import { z } from "zod";
 import { pool } from "../lib/pool";
 
@@ -18,11 +18,14 @@ type SearchRow = {
   snippet: string | null;
 };
 
-export default function mountSearch(router: Router) {
-  router.get("/api/search", async (req: Request, res: Response) => {
-    const parsed = Query.safeParse(req.query);
+export default function mountSearch(router: Application) {
+  const routerAny = router as any;
+  routerAny.get("/api/search", async (req: Request, res: Response) => {
+    const reqAny = req as any;
+    const resAny = res as any;
+    const parsed = Query.safeParse(reqAny.query);
     if (!parsed.success) {
-      return res.status(400).json({ ok: false, error: parsed.error.flatten() });
+      return resAny.status(400).json({ ok: false, error: parsed.error.flatten() });
     }
     const { q, limit, offset, documentId } = parsed.data;
 
@@ -56,10 +59,10 @@ export default function mountSearch(router: Router) {
 
     try {
       const { rows } = await pool.query<SearchRow>(sql, params);
-      return res.json({ ok: true, count: rows.length, results: rows });
+      return resAny.json({ ok: true, count: rows.length, results: rows });
     } catch (e: any) {
       console.error("[search] failed:", e?.message || e);
-      return res.status(500).json({ ok: false, error: "search_failed" });
+      return resAny.status(500).json({ ok: false, error: "search_failed" });
     }
   });
 }

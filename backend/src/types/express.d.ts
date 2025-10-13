@@ -21,7 +21,6 @@ declare global {
 
 declare module "express-serve-static-core" {
   interface Request {
-    user?: { id: string };
     file?: Express.Multer.File;
     files?: Express.Multer.File[];
   }

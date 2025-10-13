@@ -23,13 +23,17 @@ export default function DocumentPage() {
       setError(null);
       setLoading(true);
       try {
-        const metaRes = await fetch(`/api/documents/${encodeURIComponent(id)}`);
+        const metaRes = await fetch(`/api/documents/${encodeURIComponent(id)}`, {
+          credentials: "same-origin",
+        });
         if (!metaRes.ok) throw new Error("Failed to load metadata");
         const m: DocMeta = await metaRes.json();
         if (aborted) return;
         setMeta(m);
 
-        const fileRes = await fetch(`/api/documents/${encodeURIComponent(id)}/file`);
+        const fileRes = await fetch(`/api/documents/${encodeURIComponent(id)}/file`, {
+          credentials: "same-origin",
+        });
         if (!fileRes.ok) throw new Error("Failed to load file");
         const blob = await fileRes.blob();
         if (aborted) return;

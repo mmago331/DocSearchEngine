@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 import { Button, Input, Card, CardBody, Table, Th, Td, Badge } from "@/ui/primitives";
 import { useToast } from "@/ui/toast";
 
@@ -13,7 +13,7 @@ export default function Library() {
   const load = async () => {
     setErr(null);
     try {
-      const { data } = await api.get<{ documents?: any[] }>("/api/documents");
+      const { data } = await api.get<{ documents?: any[] }>("/documents");
       setDocs(data?.documents || []);
     } catch (error: any) {
       const message = error?.response?.data?.error || error?.message || "load failed";
@@ -31,7 +31,7 @@ export default function Library() {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      await api.post("/api/documents", fd, {
+      await api.post("/documents", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setFile(null);
@@ -70,7 +70,7 @@ export default function Library() {
                         variant="ghost"
                         onClick={async () => {
                           try {
-                            await api.patch(`/api/documents/${d.id}/visibility`, {
+                            await api.patch(`/documents/${d.id}/visibility`, {
                               is_public: !d.is_public,
                             });
                           } catch (error: any) {
@@ -89,7 +89,7 @@ export default function Library() {
                         onClick={async () => {
                           if (!confirm("Delete this document?")) return;
                           try {
-                            await api.delete(`/api/documents/${d.id}`);
+                            await api.delete(`/documents/${d.id}`);
                           } catch (error: any) {
                             const message = error?.response?.data?.error || "Delete failed";
                             push({ text: message, tone: "error" });

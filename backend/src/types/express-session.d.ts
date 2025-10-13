@@ -9,13 +9,13 @@ declare module "express-session" {
   }
 
   interface SessionData {
-    user?: { email: string };
+    user?: string;
     [key: string]: any;
   }
 
   interface Session {
     destroy(callback: (err?: unknown) => void): void;
-    user?: { email: string };
+    user?: string;
     [key: string]: any;
   }
 
@@ -28,4 +28,10 @@ declare module "express-session" {
 
   const session: (options: SessionOptions) => RequestHandler;
   export default session;
+}
+
+declare module "express-serve-static-core" {
+  interface Request {
+    session: import("express-session").Session & import("express-session").SessionData;
+  }
 }

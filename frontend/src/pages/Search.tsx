@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { api } from "@/lib/api";
+import api from "@/lib/api";
 import { Button, Input, Card, CardBody, Badge } from "@/ui/primitives";
 
 type Row = {
@@ -22,7 +22,7 @@ export default function Search() {
     setErr(null);
     setLoading(true);
     try {
-      const { data } = await api.get<{ results?: Row[] }>("/api/search", {
+      const { data } = await api.get<{ results?: Row[] }>("/search", {
         params: { q },
       });
       setRows(data?.results || []);
