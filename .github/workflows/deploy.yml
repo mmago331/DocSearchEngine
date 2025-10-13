@@ -5,6 +5,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# REQUIRED for azure/login OIDC
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -18,12 +23,11 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
-      # Use the lockfile you just committed. If you see EUSAGE again,
-      # it means the lockfile didn't get committed or changed without update.
       - name: Install backend (prod only)
         working-directory: backend
-        run: |
-          npm ci --omit=dev || npm install --omit=dev --no-audit --no-fund
+        run: npm ci --omit=dev
+        # If you ever hit CI lockfile errors again, use this instead:
+        # run: npm ci --omit=dev || npm install --omit=dev --no-audit --no-fund
 
       - name: Zip backend
         run: |
@@ -31,7 +35,7 @@ jobs:
           zip -r ../backend.zip package.json package-lock.json server.js public node_modules
           cd ..
 
-      # ---- DO NOT REMOVE THIS BLOCK ----
+      # ---- DO NOT REMOVE ----
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -39,7 +43,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B973AA95BDDB4C49A6975085CA622576 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_08053C01490A49349B359E2FE8EA0628 }}
 
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure Web App (prod)
         uses: azure/webapps-deploy@v3
         with:
           app-name: docsearchengine-amd3dvf7hch0cnax
