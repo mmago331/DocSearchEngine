@@ -1,0 +1,15 @@
+<% layout('_layout', { title: 'Explore' }) %>
+<h1 class="text-2xl font-semibold">Explore public documents</h1>
+<p class="mt-1 text-sm text-gray-500">Browse recently shared uploads.</p>
+<div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  <% if (!docs || docs.length === 0) { %>
+    <div class="rounded-xl border border-dashed p-6 text-center text-sm text-gray-500 sm:col-span-2 lg:col-span-3">No public documents yet.</div>
+  <% } else { %>
+    <% docs.forEach(function(doc) { %>
+      <div class="rounded-xl border p-4">
+        <div class="text-base font-semibold"><%= doc.title %></div>
+        <div class="text-sm text-gray-500 mt-1">Shared <%= new Date(doc.created_at).toLocaleDateString() %></div>
+      </div>
+    <% }) %>
+  <% } %>
+</div>

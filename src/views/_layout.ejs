@@ -1,0 +1,27 @@
+<!doctype html><html lang="en"><head>
+  <meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title><%= title %></title>
+  <link rel="stylesheet" href="/styles.css">
+</head><body class="bg-gray-50 text-gray-900">
+<header class="sticky top-0 z-10 border-b bg-white">
+  <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
+    <a href="/" class="text-lg font-semibold text-indigo-700">DocSearchEngine</a>
+    <nav class="ml-6 hidden gap-1 md:flex">
+      <a class="px-3 py-2 rounded-md text-sm hover:bg-gray-100" href="/">Search</a>
+      <a class="px-3 py-2 rounded-md text-sm hover:bg-gray-100" href="/documents">Library</a>
+      <a class="px-3 py-2 rounded-md text-sm hover:bg-gray-100" href="/explore">Explore</a>
+    </nav>
+    <form method="post" action="/logout" class="ml-auto"><button class="px-3 py-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50">Logout</button></form>
+  </div>
+</header>
+<div class="mx-auto grid max-w-7xl grid-cols-[220px_1fr] gap-4 p-4">
+  <aside class="hidden rounded-2xl border bg-white p-2 md:block">
+    <a class="block rounded-md px-3 py-2 text-sm hover:bg-gray-50" href="/">Main</a>
+    <a class="block rounded-md px-3 py-2 text-sm hover:bg-gray-50" href="/documents">Library</a>
+    <a class="block rounded-md px-3 py-2 text-sm hover:bg-gray-50" href="/explore">Explore</a>
+    <a class="block rounded-md px-3 py-2 text-sm hover:bg-gray-50" href="/upload">Upload</a>
+    <a class="block rounded-md px-3 py-2 text-sm hover:bg-gray-50" href="/admin">Admin</a>
+  </aside>
+  <main class="rounded-2xl border bg-white p-4"><%- body %></main>
+</div>
+</body></html>
