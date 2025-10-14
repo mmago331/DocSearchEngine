@@ -6,6 +6,7 @@ import morgan from 'morgan';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import adminRouter from './routes/admin.js';
 import searchRouter from './routes/search.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -21,6 +22,7 @@ app.use(morgan('combined'));
 
 app.use(express.static(path.resolve(__dirname, '../public')));
 
+app.use('/api/admin', adminRouter);
 app.use('/api', searchRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
