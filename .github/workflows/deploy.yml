@@ -16,9 +16,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
+
+      - name: Install dev deps for UI build
+        run: npm ci
+
+      - name: Build UI CSS (Tailwind)
+        run: npm run build:ui
 
       # Install runtime deps inside backend (prod only) using its lockfile
       - name: Install backend (prod only)
