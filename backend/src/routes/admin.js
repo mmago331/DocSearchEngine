@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { db } from '../../db.js';
+import { db, rebuildFts } from '../../db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,6 +56,20 @@ router.post('/seed', requireAdmin, (req, res) => {
         error: 'seed_failed',
         detail: String(err && err.message ? err.message : err),
       });
+  }
+});
+
+router.post('/reindex', requireAdmin, (_req, res) => {
+  try {
+    rebuildFts();
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('reindex error', err);
+    return res.status(500).json({
+      ok: false,
+      error: 'reindex_failed',
+      detail: String(err.message || err),
+    });
   }
 });
 

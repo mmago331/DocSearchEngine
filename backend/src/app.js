@@ -23,7 +23,7 @@ app.use(morgan('combined'));
 app.use(express.static(path.resolve(__dirname, '../public')));
 
 app.use('/api/admin', adminRouter);
-app.use('/api', searchRouter);
+app.use('/api/search', searchRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 

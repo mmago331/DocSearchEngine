@@ -4,34 +4,61 @@ import { db } from '../../db.js';
 
 const router = Router();
 
-router.get('/search', (req, res) => {
+router.get('/', (req, res) => {
+  const q = (req.query.q || '').toString().trim();
+  const limit = Math.min(parseInt(req.query.limit || '20', 10) || 20, 100);
+
+  if (!q) {
+    return res.json({ ok: true, hits: [] });
+  }
+
   try {
-    const q = (req.query.q || '').toString().trim();
-    if (!q) {
-      return res.json({ ok: true, q: '', count: 0, results: [] });
+    let hits;
+
+    try {
+      hits = db
+        .prepare(
+          `
+        SELECT d.id,
+               d.title,
+               snippet(docs_fts, 1, '<b>', '</b>', '…', 10) AS snippet,
+               bm25(docs_fts) AS score
+          FROM docs_fts
+          JOIN docs d ON d.rowid = docs_fts.rowid
+         WHERE docs_fts MATCH ?
+         ORDER BY score ASC
+         LIMIT ?
+        `
+        )
+        .all(q, limit);
+    } catch (_err) {
+      const likeQuery = `%${q.replace(/[%_]/g, ' ')}%`;
+      hits = db
+        .prepare(
+          `
+        SELECT id,
+               title,
+               substr(body, 1, 200) AS snippet,
+               1.0 AS score
+          FROM docs
+         WHERE title LIKE ? OR body LIKE ?
+         LIMIT ?
+        `
+        )
+        .all(likeQuery, likeQuery, limit);
     }
 
-    const like = `%${q.replace(/[%_]/g, ' ')}%`;
-    const stmt = db.prepare(
-      `SELECT id, title, SUBSTR(body, 1, 280) AS snippet
-       FROM docs
-       WHERE title LIKE ? OR body LIKE ?
-       ORDER BY rowid DESC
-       LIMIT 20`
-    );
-    const rows = stmt.all(like, like);
-
-    const results = rows.map((row) => ({
-      id: row.id,
-      title: row.title,
-      snippet: row.snippet,
-      score: 100,
-    }));
-
-    return res.json({ ok: true, q, count: results.length, results });
+    return res.json({
+      ok: true,
+      hits: hits.map((hit) => ({ ...hit, score: Number(hit.score) })),
+    });
   } catch (err) {
     console.error('search error', err);
-    return res.status(500).json({ ok: false, error: 'search_failed' });
+    return res.status(500).json({
+      ok: false,
+      error: 'search_failed',
+      detail: String(err.message || err),
+    });
   }
 });
 
