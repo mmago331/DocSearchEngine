@@ -24,7 +24,7 @@ jobs:
       - name: Install backend (prod only)
         run: |
           cd backend
-          npm ci --omit=dev
+          npm install --omit=dev --no-audit --no-fund
 
       # Zip the backend folder so package.json is at the zip root (like Proxy)
       - name: Zip backend
