@@ -1,0 +1,15 @@
+{
+  "name": "docsearchengine",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:ui": "tailwindcss -c tailwind.config.cjs -i ui/src/styles.css -o backend/dist/public/assets/styles.css --minify",
+    "watch:ui": "tailwindcss -c tailwind.config.cjs -i ui/src/styles.css -o backend/dist/public/assets/styles.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/forms": "^0.5.9",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.45",
+    "tailwindcss": "^3.4.10"
+  }
+}
