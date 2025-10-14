@@ -1,0 +1,20 @@
+[
+  {
+    "id": "d1",
+    "title": "Loan Document Checklist",
+    "summary": "Checklist outlining documents needed for a typical mortgage application.",
+    "tags": ["checklist","mortgage","docs"]
+  },
+  {
+    "id": "d2",
+    "title": "Income Verification Guide",
+    "summary": "Acceptable income documentation and calculations for wage and self-employed borrowers.",
+    "tags": ["income","guide","calc"]
+  },
+  {
+    "id": "d3",
+    "title": "Closing Disclosure FAQs",
+    "summary": "Common questions about the CD timing and tolerances.",
+    "tags": ["closing","faq","cd"]
+  }
+]
