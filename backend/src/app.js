@@ -7,6 +7,7 @@ import path from 'node:path';
 import session from 'express-session';
 import { fileURLToPath } from 'node:url';
 
+import adminRouter from './routes/admin.js';
 import searchRouter from './routes/search.js';
 import authRouter from './routes/auth.js';
 import documentsRouter from './routes/documents.js';
@@ -54,6 +55,7 @@ app.use(express.static(path.resolve(__dirname, '../public')));
 // API routes
 app.use('/api/auth', authRouter);
 app.use('/api/documents', documentsRouter);
+app.use('/api/admin', adminRouter);
 app.use('/api', searchRouter);
 
 app.get('/health', (_req, res) => res.json({ ok: true }));

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { createConnection, executeQuery } from '../config/database.js';
 
+import { db } from '../../db.js';
+
 const router = Router();
 
 // GET /api/search?q=...&filter=...
