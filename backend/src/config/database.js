@@ -2,18 +2,23 @@ import pkg from 'pg';
 const { Pool } = pkg;
 
 // Create connection pool using the PG_URL environment variable
-// For development, fall back to a local PostgreSQL or handle connection errors gracefully
-let pool;
-try {
-  pool = new Pool({
-    connectionString: process.env.PG_URL,
-    ssl: process.env.PG_URL?.includes('azure.com') ? {
-      rejectUnauthorized: false
-    } : false
-  });
-} catch (error) {
-  console.warn('PostgreSQL connection failed, using fallback mode:', error.message);
-  pool = null;
+// For development, fall back to mock mode if connection fails
+let pool = null;
+
+if (process.env.PG_URL) {
+  try {
+    pool = new Pool({
+      connectionString: process.env.PG_URL,
+      ssl: process.env.PG_URL?.includes('azure.com') ? {
+        rejectUnauthorized: false
+      } : false
+    });
+  } catch (error) {
+    console.warn('PostgreSQL connection failed, using mock mode:', error.message);
+    pool = null;
+  }
+} else {
+  console.log('No PG_URL provided, using mock mode');
 }
 
 export function createConnection() {
