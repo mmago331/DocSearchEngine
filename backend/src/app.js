@@ -19,7 +19,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Initialize database
-initializeDatabase().catch(console.error);
+initializeDatabase().catch((error) => {
+  console.error('Database initialization failed:', error);
+  console.log('Server will continue running in mock mode');
+});
 
 // Create uploads directory
 import fs from 'node:fs';
@@ -58,6 +61,13 @@ app.use('/api/documents', documentsRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api', searchRouter);
 
-app.get('/health', (_req, res) => res.json({ ok: true }));
+app.get('/health', (_req, res) => {
+  res.json({ 
+    ok: true, 
+    status: 'running',
+    timestamp: new Date().toISOString(),
+    database: pool ? 'connected' : 'mock_mode'
+  });
+});
 
 export default app;

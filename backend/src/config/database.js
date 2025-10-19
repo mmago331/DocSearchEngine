@@ -62,9 +62,20 @@ export async function initializeDatabase() {
     
     console.log('Connecting to PostgreSQL database...');
     
-    // Test connection
-    await executeQuery('SELECT NOW()');
-    console.log('Connected to PostgreSQL database');
+    // Test connection with timeout
+    try {
+      await Promise.race([
+        executeQuery('SELECT NOW()'),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Connection timeout')), 10000)
+        )
+      ]);
+      console.log('Connected to PostgreSQL database');
+    } catch (connectionError) {
+      console.warn('Database connection failed, switching to mock mode:', connectionError.message);
+      pool = null; // Switch to mock mode
+      return true;
+    }
     
     // Create tables if they don't exist
     await executeQuery(`
