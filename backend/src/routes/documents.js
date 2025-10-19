@@ -40,6 +40,13 @@ const upload = multer({
 // Upload document
 router.post('/upload', requireAuth, upload.single('document'), async (req, res) => {
   try {
+    const pool = createConnection();
+    if (!pool) {
+      return res.status(503).json({
+        error: 'Document uploads are unavailable because the database is not connected. Please configure the PG_URL environment variable.'
+      });
+    }
+
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
@@ -58,6 +65,10 @@ router.post('/upload', requireAuth, upload.single('document'), async (req, res) 
         'INSERT INTO documents (user_id, filename, original_name, file_path, file_size, file_type, is_public) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
         [userId, filename, originalName, filePath, fileSize, fileType, isPublic === 'true']
       );
+
+      if (!result || result.length === 0 || !result[0]?.id) {
+        throw new Error('Failed to save document metadata');
+      }
 
       const documentId = result[0].id;
 
