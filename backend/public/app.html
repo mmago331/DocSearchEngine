@@ -332,6 +332,14 @@
       const loginForm = document.getElementById('login-form');
       const registerForm = document.getElementById('register-form');
 
+      function fetchWithCredentials(url, options = {}) {
+        const config = { ...options, credentials: 'include' };
+        if (options.headers) {
+          config.headers = { ...options.headers };
+        }
+        return fetch(url, config);
+      }
+
       // Initialize app
       document.addEventListener('DOMContentLoaded', () => {
         checkAuthStatus();
@@ -341,7 +349,7 @@
       // Check authentication status
       async function checkAuthStatus() {
         try {
-          const response = await fetch('/api/auth/me');
+          const response = await fetchWithCredentials('/api/auth/me');
           if (response.ok) {
             const data = await response.json();
             currentUser = data.user;
@@ -402,7 +410,7 @@
         resultsSection.classList.add('hidden');
 
         try {
-          const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&filter=${encodeURIComponent(filter)}`);
+          const response = await fetchWithCredentials(`/api/search?q=${encodeURIComponent(query)}&filter=${encodeURIComponent(filter)}`);
           const data = await response.json();
 
           if (data.ok) {
@@ -475,7 +483,7 @@
         const formData = new FormData(uploadForm);
         
         try {
-          const response = await fetch('/api/documents/upload', {
+          const response = await fetchWithCredentials('/api/documents/upload', {
             method: 'POST',
             body: formData
           });
@@ -502,7 +510,7 @@
         const data = Object.fromEntries(formData);
         
         try {
-          const response = await fetch('/api/auth/login', {
+          const response = await fetchWithCredentials('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -532,7 +540,7 @@
         const data = Object.fromEntries(formData);
         
         try {
-          const response = await fetch('/api/auth/register', {
+          const response = await fetchWithCredentials('/api/auth/register', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -557,7 +565,7 @@
       // Handle logout
       async function handleLogout() {
         try {
-          await fetch('/api/auth/logout', { method: 'POST' });
+          await fetchWithCredentials('/api/auth/logout', { method: 'POST' });
           currentUser = null;
           updateUIForGuestUser();
           clearSearch();
