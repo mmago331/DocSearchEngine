@@ -2,7 +2,7 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import pdf from 'pdf-parse';
+// pdf-parse will be imported dynamically when needed
 import { createConnection, executeQuery } from '../config/database.js';
 import { requireAuth } from '../middleware/auth.js';
 
@@ -66,6 +66,7 @@ router.post('/upload', requireAuth, upload.single('document'), async (req, res) 
       if (fileType === 'application/pdf') {
         try {
           const pdfBuffer = await import('node:fs').then(fs => fs.readFileSync(filePath));
+          const pdf = (await import('pdf-parse')).default;
           const pdfData = await pdf(pdfBuffer);
           content = pdfData.text;
         } catch (error) {

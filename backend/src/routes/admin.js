@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { db } from '../../db.js';
+import { executeQuery } from '../config/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,7 +23,7 @@ function requireAdmin(req, res, next) {
   }
 }
 
-router.post('/seed', requireAdmin, (req, res) => {
+router.post('/seed', requireAdmin, async (req, res) => {
   const source = (req.query.source || '').toString().toLowerCase();
 
   try {
@@ -37,16 +37,39 @@ router.post('/seed', requireAdmin, (req, res) => {
       return res.status(400).json({ ok: false, error: 'unknown_source' });
     }
 
-    const insert = db.prepare(
-      'INSERT OR REPLACE INTO docs (id, title, body) VALUES (@id, @title, @body)'
-    );
+    // Insert documents into PostgreSQL
+    let inserted = 0;
+    for (const doc of docs) {
+      try {
+        await executeQuery(
+          `INSERT INTO documents (id, user_id, filename, original_name, file_path, file_size, file_type, is_public)
+           VALUES ($1, 1, $2, $3, $4, $5, $6, true)
+           ON CONFLICT (id) DO UPDATE SET
+           filename = EXCLUDED.filename,
+           original_name = EXCLUDED.original_name,
+           file_path = EXCLUDED.file_path,
+           file_size = EXCLUDED.file_size,
+           file_type = EXCLUDED.file_type,
+           is_public = EXCLUDED.is_public`,
+          [doc.id, doc.title, doc.title, '/uploads/' + doc.id, doc.body.length, 'text/plain']
+        );
 
-    const tx = db.transaction((items) => {
-      for (const d of items) insert.run(d);
-    });
-    tx(docs);
+        // Insert content into search_index
+        await executeQuery(
+          `INSERT INTO search_index (document_id, content, page_number)
+           VALUES ($1, $2, 1)
+           ON CONFLICT (document_id) DO UPDATE SET
+           content = EXCLUDED.content`,
+          [doc.id, doc.body]
+        );
 
-    return res.json({ ok: true, inserted: docs.length });
+        inserted++;
+      } catch (docErr) {
+        console.error(`Error inserting document ${doc.id}:`, docErr);
+      }
+    }
+
+    return res.json({ ok: true, inserted });
   } catch (err) {
     console.error('seed error', err);
     return res
