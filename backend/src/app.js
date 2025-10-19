@@ -5,13 +5,14 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import path from 'node:path';
 import session from 'express-session';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import adminRouter from './routes/admin.js';
 import searchRouter from './routes/search.js';
 import authRouter from './routes/auth.js';
 import documentsRouter from './routes/documents.js';
-import { initializeDatabase } from './config/database.js';
+import { createConnection, initializeDatabase } from './config/database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,7 +26,6 @@ initializeDatabase().catch((error) => {
 });
 
 // Create uploads directory
-import fs from 'node:fs';
 const uploadsDir = path.resolve(__dirname, '../uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -62,8 +62,9 @@ app.use('/api/admin', adminRouter);
 app.use('/api', searchRouter);
 
 app.get('/health', (_req, res) => {
-  res.json({ 
-    ok: true, 
+  const pool = createConnection();
+  res.json({
+    ok: true,
     status: 'running',
     timestamp: new Date().toISOString(),
     database: pool ? 'connected' : 'mock_mode'
