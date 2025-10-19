@@ -19,6 +19,11 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Trust first proxy (needed for secure cookies behind load balancers/proxies)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Initialize database
 initializeDatabase().catch((error) => {
   console.error('Database initialization failed:', error);
@@ -48,6 +53,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
