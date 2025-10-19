@@ -2,6 +2,9 @@ import { Router } from 'express';
 import multer from 'multer';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawn } from 'node:child_process';
+import { access } from 'node:fs/promises';
+import { constants as fsConstants } from 'node:fs';
 // pdf-parse will be imported dynamically when needed
 import { createConnection, executeQuery } from '../config/database.js';
 import { requireAuth } from '../middleware/auth.js';
@@ -10,6 +13,186 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const router = Router();
+
+const relayCommand = process.env.LLAMA_INDEX_RELAY_COMMAND || 'llama_index-relay';
+let relayArgsTemplateCache = null;
+let relayArgsTemplateInvalid = false;
+let relayMissingLogged = false;
+
+const PATH_EXTENSIONS = process.platform === 'win32'
+  ? ['', '.cmd', '.exe', '.bat']
+  : [''];
+
+async function fileExists(filePath) {
+  try {
+    await access(filePath, fsConstants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function tryResolveFromDirectory(directory, command) {
+  if (!directory) {
+    return null;
+  }
+
+  const trimmed = command.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const candidateNames = [trimmed];
+
+  for (const ext of PATH_EXTENSIONS) {
+    if (!ext) {
+      continue;
+    }
+
+    if (trimmed.toLowerCase().endsWith(ext)) {
+      continue;
+    }
+
+    candidateNames.push(trimmed + ext);
+  }
+
+  for (const candidateName of candidateNames) {
+    const candidatePath = path.join(directory, candidateName);
+    if (await fileExists(candidatePath)) {
+      return candidatePath;
+    }
+  }
+
+  return null;
+}
+
+async function resolveRelayCommand(command) {
+  if (!command) {
+    return null;
+  }
+
+  if (path.isAbsolute(command)) {
+    return (await fileExists(command)) ? command : null;
+  }
+
+  const localBinDir = path.resolve(__dirname, '../../node_modules/.bin');
+  const localCandidate = await tryResolveFromDirectory(localBinDir, command);
+  if (localCandidate) {
+    return localCandidate;
+  }
+
+  const pathValue = process.env.PATH || '';
+  const pathEntries = pathValue.split(path.delimiter).filter(Boolean);
+  for (const entry of pathEntries) {
+    const resolved = await tryResolveFromDirectory(entry, command);
+    if (resolved) {
+      return resolved;
+    }
+  }
+
+  return null;
+}
+
+function getRelayArgsTemplate() {
+  if (relayArgsTemplateCache) {
+    return relayArgsTemplateCache;
+  }
+
+  if (relayArgsTemplateInvalid) {
+    return [];
+  }
+
+  const raw = process.env.LLAMA_INDEX_RELAY_ARGS;
+  if (!raw) {
+    relayArgsTemplateCache = [];
+    return relayArgsTemplateCache;
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.some(item => typeof item !== 'string')) {
+      console.warn('LLAMA_INDEX_RELAY_ARGS must be a JSON array of strings. Ignoring value.');
+      relayArgsTemplateInvalid = true;
+      return [];
+    }
+
+    relayArgsTemplateCache = parsed;
+    return relayArgsTemplateCache;
+  } catch (error) {
+    console.warn('Failed to parse LLAMA_INDEX_RELAY_ARGS. Expecting JSON array of strings. Ignoring value.', error);
+    relayArgsTemplateInvalid = true;
+    return [];
+  }
+}
+
+function buildRelayArgs(context) {
+  const template = getRelayArgsTemplate();
+  if (!template.length) {
+    return [];
+  }
+
+  const replacements = {
+    '{filePath}': context.filePath,
+    '{documentId}': String(context.documentId),
+    '{originalName}': context.originalName || '',
+    '{fileType}': context.fileType || '',
+  };
+
+  return template.map(part => {
+    let result = part;
+    for (const [token, value] of Object.entries(replacements)) {
+      result = result.split(token).join(value);
+    }
+    return result;
+  });
+}
+
+async function triggerDocumentAnalysis(context) {
+  try {
+    const resolvedCommand = await resolveRelayCommand(relayCommand);
+    if (!resolvedCommand) {
+      if (!relayMissingLogged) {
+        console.warn(
+          `Document analysis command "${relayCommand}" was not found. Skipping analysis for document uploads.`
+        );
+        relayMissingLogged = true;
+      }
+      return;
+    }
+
+    const args = buildRelayArgs(context);
+
+    const child = spawn(resolvedCommand, args, {
+      stdio: 'ignore',
+      env: {
+        ...process.env,
+        LLAMA_INDEX_DOCUMENT_ID: String(context.documentId),
+        LLAMA_INDEX_SOURCE_PATH: context.filePath,
+        LLAMA_INDEX_FILE_TYPE: context.fileType || '',
+        LLAMA_INDEX_ORIGINAL_NAME: context.originalName || '',
+      },
+      detached: false,
+    });
+
+    child.on('error', (error) => {
+      console.error('Document analysis command failed to start:', error);
+    });
+
+    child.on('exit', (code) => {
+      if (code !== 0) {
+        console.error(
+          `Document analysis command exited with code ${code} for document ${context.documentId}.`
+        );
+      }
+    });
+
+    if (typeof child.unref === 'function') {
+      child.unref();
+    }
+  } catch (error) {
+    console.error('Unexpected error while starting document analysis command:', error);
+  }
+}
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -103,8 +286,15 @@ router.post('/upload', requireAuth, upload.single('document'), async (req, res) 
         );
       }
 
-      res.json({ 
-        success: true, 
+      triggerDocumentAnalysis({
+        documentId,
+        filePath,
+        originalName,
+        fileType,
+      });
+
+      res.json({
+        success: true,
         message: 'Document uploaded successfully',
         document: {
           id: documentId,
