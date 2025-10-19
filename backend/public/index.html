@@ -3,33 +3,27 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>DocSearchEngine — Login</title>
+  <title>DocSearchEngine — Document Search Engine</title>
   <link rel="stylesheet" href="/styles.css"/>
 </head>
 <body>
   <main class="wrap">
-    <h1>Login</h1>
-    <form id="loginForm">
-      <label>Email <input type="email" name="email" required/></label>
-      <label>Password <input type="password" name="password" required/></label>
-      <button type="submit">Login</button>
-    </form>
-    <p id="msg"></p>
+    <h1>DocSearchEngine</h1>
+    <p>Welcome to DocSearchEngine - Your personal document search engine!</p>
+    <div style="margin-top: 2rem;">
+      <a href="/app.html" style="display: inline-block; background: #1f2937; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-right: 12px;">Start Searching</a>
+      <a href="/library.html" style="display: inline-block; background: #6b7280; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-right: 12px;">My Library</a>
+      <a href="/explore.html" style="display: inline-block; background: #059669; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600;">Explore Public</a>
+    </div>
+    <div style="margin-top: 2rem; padding: 1rem; background: #f3f4f6; border-radius: 8px;">
+      <h3 style="margin-top: 0;">Features:</h3>
+      <ul style="margin: 0; padding-left: 1.5rem;">
+        <li>Upload and search through your documents</li>
+        <li>Share documents publicly with others</li>
+        <li>Full-text search across PDF and text files</li>
+        <li>Organize your document library</li>
+      </ul>
+    </div>
   </main>
-  <script>
-    const form = document.getElementById("loginForm");
-    const msg = document.getElementById("msg");
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const body = Object.fromEntries(new FormData(form));
-      const r = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-      });
-      const data = await r.json();
-      msg.textContent = r.ok ? "Success." : (data.error || "Login failed");
-    });
-  </script>
 </body>
 </html>

@@ -1,0 +1,133 @@
+import { Router } from 'express';
+import { createConnection, executeQuery } from '../config/database.js';
+import { hashPassword, comparePassword } from '../middleware/auth.js';
+
+const router = Router();
+
+// Register endpoint
+router.post('/register', async (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    
+    if (!email || !password || !name) {
+      return res.status(400).json({ error: 'Email, password, and name are required' });
+    }
+
+    try {
+      // Check if user already exists
+      const existingUsers = await executeQuery(
+        'SELECT id FROM users WHERE email = $1',
+        [email]
+      );
+
+      if (existingUsers.length > 0) {
+        return res.status(400).json({ error: 'User already exists' });
+      }
+
+      // Create new user
+      const hashedPassword = hashPassword(password);
+      const result = await executeQuery(
+        'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id',
+        [email, hashedPassword, name]
+      );
+
+      const userId = result[0].id;
+      
+      // Set session
+      req.session.userId = userId;
+      req.session.userEmail = email;
+      req.session.userName = name;
+
+      res.json({ 
+        success: true, 
+        message: 'User registered successfully',
+        user: { id: userId, email, name }
+      });
+
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ error: 'Registration failed' });
+    }
+
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ error: 'Registration failed' });
+  }
+});
+
+// Login endpoint
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    try {
+      // Find user by email
+      const users = await executeQuery(
+        'SELECT id, email, password_hash, name FROM users WHERE email = $1',
+        [email]
+      );
+
+      if (users.length === 0) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+      const user = users[0];
+      
+      // Verify password
+      if (!comparePassword(password, user.password_hash)) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+
+      // Set session
+      req.session.userId = user.id;
+      req.session.userEmail = user.email;
+      req.session.userName = user.name;
+
+      res.json({ 
+        success: true, 
+        message: 'Login successful',
+        user: { id: user.id, email: user.email, name: user.name }
+      });
+
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ error: 'Login failed' });
+    }
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Login failed' });
+  }
+});
+
+// Logout endpoint
+router.post('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ error: 'Logout failed' });
+    }
+    res.json({ success: true, message: 'Logout successful' });
+  });
+});
+
+// Get current user
+router.get('/me', (req, res) => {
+  if (req.session && req.session.userId) {
+    res.json({ 
+      success: true, 
+      user: { 
+        id: req.session.userId, 
+        email: req.session.userEmail, 
+        name: req.session.userName 
+      }
+    });
+  } else {
+    res.status(401).json({ error: 'Not authenticated' });
+  }
+});
+
+export default router;

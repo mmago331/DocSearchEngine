@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DocSearchEngine • Explore Public Documents</title>
+
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://rsms.me" />
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet" />
+
+    <!-- Tailwind Play CDN + forms plugin -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          container: { center: true, padding: "1rem" },
+          extend: {
+            fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui", "Segoe UI", "Helvetica", "Arial", "Apple Color Emoji", "Segoe UI Emoji"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-50 font-sans text-slate-900">
+    <!-- Top bar -->
+    <header class="border-b bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <nav class="container flex h-14 items-center justify-between">
+        <a href="/app.html" class="text-lg font-semibold tracking-tight">DocSearchEngine</a>
+        <ul class="flex items-center gap-6 text-sm">
+          <li><a class="text-slate-600 hover:text-slate-900" href="/app.html">Search</a></li>
+          <li><a class="text-slate-600 hover:text-slate-900" href="/library.html">My Library</a></li>
+          <li><a class="text-slate-900 font-medium" href="/explore.html">Explore</a></li>
+          <li id="auth-section">
+            <span id="user-info" class="hidden text-slate-600"></span>
+            <button id="login-btn" class="text-slate-600 hover:text-slate-900">Login</button>
+            <button id="logout-btn" class="hidden text-slate-600 hover:text-slate-900">Logout</button>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="container py-10">
+      <!-- Search Section -->
+      <section class="mb-8 rounded-2xl border bg-white shadow-sm">
+        <div class="border-b px-6 py-5">
+          <h2 class="text-lg font-semibold">Search Public Documents</h2>
+          <p class="mt-1 text-sm text-slate-600">
+            Search through documents shared publicly by other users.
+          </p>
+        </div>
+
+        <div class="px-6 py-6">
+          <div class="flex gap-4">
+            <input
+              id="search-input"
+              type="text"
+              placeholder="Enter search terms..."
+              class="flex-1 rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400"
+            />
+            <button
+              id="search-btn"
+              class="rounded-lg bg-slate-900 px-6 py-2 text-sm font-semibold text-white hover:bg-black"
+            >
+              Search
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Public Documents List -->
+      <section class="rounded-2xl border bg-white shadow-sm">
+        <div class="border-b px-6 py-5">
+          <h2 class="text-lg font-semibold">Public Documents</h2>
+          <p id="documents-count" class="mt-1 text-sm text-slate-600">Loading...</p>
+        </div>
+        <div id="documents-container" class="p-6">
+          <div class="text-center py-8">
+            <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-slate-300 border-r-slate-600"></div>
+            <p class="mt-2 text-sm text-slate-600">Loading documents...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Search Results -->
+      <section id="results-section" class="mt-8 rounded-2xl border bg-white shadow-sm hidden">
+        <div class="border-b px-6 py-5">
+          <h2 class="text-lg font-semibold">Search Results</h2>
+          <p id="results-count" class="mt-1 text-sm text-slate-600"></p>
+        </div>
+        <div id="results-container" class="p-6">
+          <!-- Results will be populated here -->
+        </div>
+      </section>
+    </main>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="fixed inset-0 bg-black bg-opacity-25" onclick="closeLoginModal()"></div>
+        <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+          <h3 class="text-lg font-semibold">Login</h3>
+          <form id="login-form" class="mt-4 space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700">Email</label>
+              <input type="email" name="email" required class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700">Password</label>
+              <input type="password" name="password" required class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400">
+            </div>
+            <div class="flex justify-end space-x-3">
+              <button type="button" onclick="closeLoginModal()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+              <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black">Login</button>
+            </div>
+          </form>
+          <p class="mt-4 text-center text-sm text-slate-600">
+            Don't have an account? <button onclick="showRegisterModal()" class="text-slate-900 hover:underline">Register</button>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="fixed inset-0 bg-black bg-opacity-25" onclick="closeRegisterModal()"></div>
+        <div class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+          <h3 class="text-lg font-semibold">Register</h3>
+          <form id="register-form" class="mt-4 space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700">Name</label>
+              <input type="text" name="name" required class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700">Email</label>
+              <input type="email" name="email" required class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700">Password</label>
+              <input type="password" name="password" required class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400">
+            </div>
+            <div class="flex justify-end space-x-3">
+              <button type="button" onclick="closeRegisterModal()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50">Cancel</button>
+              <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black">Register</button>
+            </div>
+          </form>
+          <p class="mt-4 text-center text-sm text-slate-600">
+            Already have an account? <button onclick="showLoginModal()" class="text-slate-900 hover:underline">Login</button>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Global state
+      let currentUser = null;
+
+      // DOM elements
+      const searchInput = document.getElementById('search-input');
+      const searchBtn = document.getElementById('search-btn');
+      const documentsContainer = document.getElementById('documents-container');
+      const documentsCount = document.getElementById('documents-count');
+      const resultsSection = document.getElementById('results-section');
+      const resultsContainer = document.getElementById('results-container');
+      const resultsCount = document.getElementById('results-count');
+      const userInfo = document.getElementById('user-info');
+      const loginBtn = document.getElementById('login-btn');
+      const logoutBtn = document.getElementById('logout-btn');
+      const loginModal = document.getElementById('login-modal');
+      const registerModal = document.getElementById('register-modal');
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+
+      // Initialize app
+      document.addEventListener('DOMContentLoaded', () => {
+        checkAuthStatus();
+        setupEventListeners();
+        loadPublicDocuments();
+      });
+
+      // Check authentication status
+      async function checkAuthStatus() {
+        try {
+          const response = await fetch('/api/auth/me');
+          if (response.ok) {
+            const data = await response.json();
+            currentUser = data.user;
+            updateUIForAuthenticatedUser();
+          } else {
+            updateUIForGuestUser();
+          }
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          updateUIForGuestUser();
+        }
+      }
+
+      // Update UI for authenticated user
+      function updateUIForAuthenticatedUser() {
+        userInfo.textContent = `Welcome, ${currentUser.name}`;
+        userInfo.classList.remove('hidden');
+        loginBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+      }
+
+      // Update UI for guest user
+      function updateUIForGuestUser() {
+        userInfo.classList.add('hidden');
+        loginBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+        currentUser = null;
+      }
+
+      // Setup event listeners
+      function setupEventListeners() {
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') performSearch();
+        });
+        loginForm.addEventListener('submit', handleLogin);
+        registerForm.addEventListener('submit', handleRegister);
+        logoutBtn.addEventListener('click', handleLogout);
+      }
+
+      // Load public documents
+      async function loadPublicDocuments() {
+        try {
+          const response = await fetch('/api/documents/public');
+          const data = await response.json();
+
+          if (data.success) {
+            displayDocuments(data.documents);
+          } else {
+            showError('Failed to load documents: ' + (data.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Load documents error:', error);
+          showError('Failed to load documents: ' + error.message);
+        }
+      }
+
+      // Display documents
+      function displayDocuments(documents) {
+        documentsCount.textContent = `Found ${documents.length} public document${documents.length !== 1 ? 's' : ''}`;
+        
+        if (documents.length === 0) {
+          documentsContainer.innerHTML = '<div class="text-center py-8 text-slate-500">No public documents available</div>';
+        } else {
+          documentsContainer.innerHTML = documents.map(doc => `
+            <div class="border-b border-slate-200 py-4 last:border-b-0">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <h3 class="text-lg font-medium text-slate-900">${doc.original_name}</h3>
+                  <div class="mt-1 flex items-center space-x-4 text-sm text-slate-600">
+                    <span>Size: ${formatFileSize(doc.file_size)}</span>
+                    <span>Type: ${doc.file_type}</span>
+                    <span>By: ${doc.uploader_name}</span>
+                    <span>Uploaded: ${new Date(doc.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button onclick="searchDocument('${doc.original_name}')" class="rounded-lg bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-200">
+                    Search
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // Perform search
+      async function performSearch() {
+        const query = searchInput.value.trim();
+
+        if (!query) {
+          alert('Please enter a search term');
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&filter=public`);
+          const data = await response.json();
+
+          if (data.ok) {
+            displaySearchResults(data);
+          } else {
+            showError('Search failed: ' + (data.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Search error:', error);
+          showError('Search failed: ' + error.message);
+        }
+      }
+
+      // Display search results
+      function displaySearchResults(data) {
+        resultsCount.textContent = `Found ${data.count} result${data.count !== 1 ? 's' : ''} for "${data.q}"`;
+        
+        if (data.count === 0) {
+          resultsContainer.innerHTML = '<div class="text-center py-8 text-slate-500">No results found</div>';
+        } else {
+          resultsContainer.innerHTML = data.results.map(result => `
+            <div class="border-b border-slate-200 py-4 last:border-b-0">
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h3 class="text-lg font-medium text-slate-900">${result.title}</h3>
+                  <p class="mt-1 text-sm text-slate-600">${result.snippet}</p>
+                  <div class="mt-2 flex items-center space-x-4 text-xs text-slate-500">
+                    <span>Score: ${Math.round(result.score * 100)}%</span>
+                    <span>Type: ${result.filter}</span>
+                    ${result.uploader ? `<span>By: ${result.uploader}</span>` : ''}
+                    ${result.created_at ? `<span>Uploaded: ${new Date(result.created_at).toLocaleDateString()}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        resultsSection.classList.remove('hidden');
+      }
+
+      // Search document
+      function searchDocument(filename) {
+        searchInput.value = filename;
+        performSearch();
+      }
+
+      // Format file size
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      // Show error
+      function showError(message) {
+        documentsContainer.innerHTML = `<div class="rounded-md bg-red-50 p-3 text-sm text-red-700">${message}</div>`;
+      }
+
+      // Handle login
+      async function handleLogin(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(loginForm);
+        const data = Object.fromEntries(formData);
+        
+        try {
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            currentUser = result.user;
+            updateUIForAuthenticatedUser();
+            closeLoginModal();
+            alert('Login successful!');
+          } else {
+            alert('Login failed: ' + (result.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          alert('Login failed: ' + error.message);
+        }
+      }
+
+      // Handle register
+      async function handleRegister(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(registerForm);
+        const data = Object.fromEntries(formData);
+        
+        try {
+          const response = await fetch('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            currentUser = result.user;
+            updateUIForAuthenticatedUser();
+            closeRegisterModal();
+            alert('Registration successful!');
+          } else {
+            alert('Registration failed: ' + (result.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Registration error:', error);
+          alert('Registration failed: ' + error.message);
+        }
+      }
+
+      // Handle logout
+      async function handleLogout() {
+        try {
+          await fetch('/api/auth/logout', { method: 'POST' });
+          currentUser = null;
+          updateUIForGuestUser();
+          alert('Logged out successfully!');
+        } catch (error) {
+          console.error('Logout error:', error);
+          alert('Logout failed: ' + error.message);
+        }
+      }
+
+      // Modal functions
+      function showLoginModal() {
+        loginModal.classList.remove('hidden');
+        registerModal.classList.add('hidden');
+      }
+
+      function closeLoginModal() {
+        loginModal.classList.add('hidden');
+      }
+
+      function showRegisterModal() {
+        registerModal.classList.remove('hidden');
+        loginModal.classList.add('hidden');
+      }
+
+      function closeRegisterModal() {
+        registerModal.classList.add('hidden');
+      }
+
+      // Make functions global for onclick handlers
+      window.showLoginModal = showLoginModal;
+      window.closeLoginModal = closeLoginModal;
+      window.showRegisterModal = showRegisterModal;
+      window.closeRegisterModal = closeRegisterModal;
+      window.searchDocument = searchDocument;
+    </script>
+  </body>
+</html>
