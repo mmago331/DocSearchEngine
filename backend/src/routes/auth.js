@@ -64,8 +64,26 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
+    // Check for admin login first
+    const adminUser = process.env.ADMIN_USER;
+    const adminPass = process.env.ADMIN_PASS;
+    
+    if (email === adminUser && password === adminPass) {
+      // Admin login
+      req.session.userId = 'admin';
+      req.session.userEmail = adminUser;
+      req.session.userName = 'Administrator';
+      req.session.isAdmin = true;
+
+      return res.json({ 
+        success: true, 
+        message: 'Admin login successful',
+        user: { id: 'admin', email: adminUser, name: 'Administrator', isAdmin: true }
+      });
+    }
+
     try {
-      // Find user by email
+      // Find user by email in database
       const users = await executeQuery(
         'SELECT id, email, password_hash, name FROM users WHERE email = $1',
         [email]
@@ -86,11 +104,12 @@ router.post('/login', async (req, res) => {
       req.session.userId = user.id;
       req.session.userEmail = user.email;
       req.session.userName = user.name;
+      req.session.isAdmin = false;
 
       res.json({ 
         success: true, 
         message: 'Login successful',
-        user: { id: user.id, email: user.email, name: user.name }
+        user: { id: user.id, email: user.email, name: user.name, isAdmin: false }
       });
 
     } catch (error) {
@@ -122,7 +141,8 @@ router.get('/me', (req, res) => {
       user: { 
         id: req.session.userId, 
         email: req.session.userEmail, 
-        name: req.session.userName 
+        name: req.session.userName,
+        isAdmin: req.session.isAdmin || false
       }
     });
   } else {
