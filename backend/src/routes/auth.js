@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createConnection, executeQuery } from '../config/database.js';
+import { pool } from '../db/pg.js';
 import { hashPassword, comparePassword } from '../middleware/auth.js';
 
 const router = Router();
@@ -14,8 +14,7 @@ router.post('/register', async (req, res) => {
     }
 
     try {
-      // Check if user already exists
-      const existingUsers = await executeQuery(
+      const { rows: existingUsers } = await pool.query(
         'SELECT id FROM users WHERE email = $1',
         [email]
       );
@@ -26,12 +25,12 @@ router.post('/register', async (req, res) => {
 
       // Create new user
       const hashedPassword = hashPassword(password);
-      const result = await executeQuery(
+      const { rows } = await pool.query(
         'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name, is_admin',
         [email, hashedPassword, name]
       );
 
-      const user = result[0];
+      const user = rows[0];
 
       // Set session
       req.session.userId = user.id;
@@ -85,7 +84,7 @@ router.post('/login', async (req, res) => {
 
     try {
       // Find user by email in database
-      const users = await executeQuery(
+      const { rows: users } = await pool.query(
         'SELECT id, email, password_hash, name, is_admin FROM users WHERE email = $1',
         [email]
       );

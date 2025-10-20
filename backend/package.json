@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "rm -rf dist && mkdir -p dist && cp -R src/. dist/ && cp -R public dist/public && sed 's#./src/app.js#./app.js#' server.js > dist/server.js",
+    "build": "tsc",
     "start": "node dist/server.js"
   },
   "dependencies": {
