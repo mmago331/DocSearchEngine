@@ -1,24 +1,80 @@
 import pkg from 'pg';
+
 const { Pool } = pkg;
 
-// Create connection pool using the PG_URL environment variable
-// For development, fall back to mock mode if connection fails
+const CONNECTION_ENV_KEYS = [
+  'PG_URL',
+  'DATABASE_URL',
+  'POSTGRES_URL',
+  'POSTGRESQL_URL',
+  'PG_CONNECTION_STRING'
+];
+
+function getConnectionString() {
+  for (const key of CONNECTION_ENV_KEYS) {
+    const value = process.env[key];
+    if (value) {
+      return { value, source: key };
+    }
+  }
+  return { value: null, source: null };
+}
+
+function shouldEnableSsl(connectionString) {
+  if (!connectionString) {
+    return false;
+  }
+
+  const explicitSetting = process.env.PG_SSL?.toLowerCase();
+  if (explicitSetting === 'true') {
+    return true;
+  }
+  if (explicitSetting === 'false') {
+    return false;
+  }
+
+  const normalized = connectionString.toLowerCase();
+  if (normalized.includes('sslmode=require') || normalized.includes('sslmode=verify-full')) {
+    return true;
+  }
+
+  if (
+    normalized.includes('azure.com') ||
+    normalized.includes('render.com') ||
+    normalized.includes('supabase.co')
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+// Create connection pool using the first matching environment variable.
+// For development, fall back to mock mode if connection fails.
 let pool = null;
 
-if (process.env.PG_URL) {
+const { value: connectionString, source: connectionSource } = getConnectionString();
+
+if (connectionString) {
   try {
-    pool = new Pool({
-      connectionString: process.env.PG_URL,
-      ssl: process.env.PG_URL?.includes('azure.com') ? {
-        rejectUnauthorized: false
-      } : false
+    const poolConfig = { connectionString };
+
+    if (shouldEnableSsl(connectionString)) {
+      poolConfig.ssl = { rejectUnauthorized: false };
+    }
+
+    pool = new Pool(poolConfig);
+    pool.on('error', (error) => {
+      console.error('Unexpected database error:', error);
     });
+
+    console.log(`Using PostgreSQL connection string from ${connectionSource}`);
   } catch (error) {
     console.warn('PostgreSQL connection failed, using mock mode:', error.message);
     pool = null;
   }
 } else {
-  console.log('No PG_URL provided, using mock mode');
+  console.log('No PostgreSQL connection string provided, using mock mode');
 }
 
 export function createConnection() {
