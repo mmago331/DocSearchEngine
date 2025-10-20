@@ -1,0 +1,9 @@
+{
+  "name": "docsearchengine",
+  "private": true,
+  "workspaces": ["backend"],
+  "scripts": {
+    "build": "npm ci --workspace backend && npm run build --workspace backend",
+    "start": "node backend/dist/server.js"
+  }
+}
