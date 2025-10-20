@@ -77,4 +77,25 @@ app.get('/health', (_req, res) => {
   });
 });
 
+// Global error handler to ensure JSON responses for unexpected errors
+// (including multipart upload issues from Multer)
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  console.error('Unhandled application error:', err);
+
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  let status = err.status || 500;
+  let message = err.message || 'Internal server error';
+
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    status = 413;
+    message = 'File too large. Maximum size is 10MB.';
+  }
+
+  res.status(status).json({ error: message });
+});
+
 export default app;
