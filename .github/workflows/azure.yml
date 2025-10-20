@@ -1,4 +1,4 @@
-name: deploy (prod)
+name: Deploy to Azure App Service
 
 on:
   push:
@@ -12,27 +12,37 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Use Node 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # Install ONLY backend prod deps
-      - name: Install backend (prod only)
-        working-directory: backend
-        run: npm install --omit=dev --no-audit --no-fund
+      - name: Install workspace dependencies
+        run: npm ci --no-audit --no-fund
 
-      # Zip the backend folder so package.json is at the zip root
-      - name: Zip backend
+      - name: Build backend
+        run: npm run build --workspace backend
+
+      - name: Prepare frontend assets
+        run: |
+          rm -rf backend/dist/public
+          mkdir -p backend/dist/public
+          cp -R backend/public/. backend/dist/public/
+
+      - name: Install backend production dependencies only
+        run: npm install --omit=dev --no-audit --no-fund --prefix backend
+
+      - name: Create deployment package
         run: |
           cd backend
-          zip -r ../backend.zip package.json package-lock.json server.js public node_modules
+          zip -r ../backend.zip . -x "*.git*"
           cd ..
 
-      # Azure login via OIDC (keep your existing secrets)
       - name: Azure login
         uses: azure/login@v2
         with:
@@ -40,9 +50,8 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B973AA95BDDB4C49A6975085CA622576 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_08053C01490A49349B359E2FE8EA0628 }}
 
-      # Deploy JUST the backend zip
       - name: Deploy to Azure Web App (prod)
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'DocSearchEngine'
+          app-name: docsearchengine-amd3dvf7hch0cnax
           package: backend.zip
