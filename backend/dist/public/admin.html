@@ -1,0 +1,859 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DocSearchEngine • Admin</title>
+
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://rsms.me" />
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet" />
+
+    <!-- Tailwind Play CDN + forms plugin -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          container: { center: true, padding: "1rem" },
+          extend: {
+            fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui", "Segoe UI", "Helvetica", "Arial", "Apple Color Emoji", "Segoe UI Emoji"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-50 font-sans text-slate-900">
+    <!-- Top bar -->
+    <header class="border-b bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <nav class="container flex h-14 items-center justify-between">
+        <a href="/app.html" class="text-lg font-semibold tracking-tight">DocSearchEngine</a>
+        <ul class="flex items-center gap-6 text-sm">
+          <li><a class="text-slate-600 hover:text-slate-900" href="/app.html">Search</a></li>
+          <li><a class="text-slate-600 hover:text-slate-900" href="/library.html">My Library</a></li>
+          <li><a class="text-slate-600 hover:text-slate-900" href="/explore.html">Explore</a></li>
+          <li><a id="admin-link" class="hidden text-slate-900 font-medium" href="/admin.html">Admin</a></li>
+          <li id="auth-section">
+            <span id="user-info" class="hidden text-slate-600"></span>
+            <button id="login-btn" class="text-slate-600 hover:text-slate-900">Login</button>
+            <button id="logout-btn" class="hidden text-slate-600 hover:text-slate-900">Logout</button>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="container py-10 space-y-8">
+      <section id="admin-content" class="hidden rounded-2xl border bg-white shadow-sm">
+        <div class="border-b px-6 py-5">
+          <h2 class="text-lg font-semibold">Administrator Dashboard</h2>
+          <p class="mt-1 text-sm text-slate-600">Manage user accounts, permissions, and access to DocSearchEngine.</p>
+        </div>
+
+        <div class="px-6 py-6 space-y-8">
+          <div class="grid gap-4 sm:grid-cols-3">
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <p class="text-sm text-slate-500">Total Users</p>
+              <p id="total-users" class="mt-2 text-2xl font-semibold">0</p>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <p class="text-sm text-slate-500">Administrators</p>
+              <p id="total-admins" class="mt-2 text-2xl font-semibold">0</p>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+              <p class="text-sm text-slate-500">Total Documents</p>
+              <p id="total-documents" class="mt-2 text-2xl font-semibold">0</p>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-5">
+            <div class="flex flex-col gap-1">
+              <h3 class="text-base font-semibold text-slate-900">Create New User</h3>
+              <p class="text-sm text-slate-600">Provision a new user account and optionally grant administrator access.</p>
+            </div>
+
+            <form id="create-user-form" class="mt-4 grid gap-4 md:grid-cols-5 md:items-end">
+              <div class="md:col-span-2">
+                <label for="create-user-name" class="block text-sm font-medium text-slate-700">Full name</label>
+                <input
+                  id="create-user-name"
+                  name="name"
+                  type="text"
+                  required
+                  class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400"
+                  placeholder="Jane Doe"
+                />
+              </div>
+              <div class="md:col-span-2">
+                <label for="create-user-email" class="block text-sm font-medium text-slate-700">Email address</label>
+                <input
+                  id="create-user-email"
+                  name="email"
+                  type="email"
+                  required
+                  class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400"
+                  placeholder="jane@example.com"
+                />
+              </div>
+              <div class="md:col-span-2">
+                <label for="create-user-password" class="block text-sm font-medium text-slate-700">Temporary password</label>
+                <input
+                  id="create-user-password"
+                  name="password"
+                  type="password"
+                  required
+                  minlength="8"
+                  class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400"
+                  placeholder="At least 8 characters"
+                />
+              </div>
+              <div class="flex items-center gap-2">
+                <input
+                  id="create-user-is-admin"
+                  name="isAdmin"
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500"
+                />
+                <label for="create-user-is-admin" class="text-sm text-slate-700">Grant administrator access</label>
+              </div>
+              <div class="md:col-span-1">
+                <button
+                  type="submit"
+                  class="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black"
+                >
+                  Create user
+                </button>
+              </div>
+              <p id="create-user-message" class="md:col-span-5 text-sm"></p>
+            </form>
+          </div>
+
+          <div class="rounded-xl border border-slate-200">
+            <div class="flex items-center justify-between border-b px-5 py-4">
+              <div>
+                <h3 class="text-base font-semibold text-slate-900">Users</h3>
+                <p class="text-sm text-slate-600">View, edit, and manage registered users.</p>
+              </div>
+              <button
+                id="refresh-users"
+                class="inline-flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-100"
+              >
+                <span class="inline-block h-4 w-4">&#8635;</span>
+                Refresh
+              </button>
+            </div>
+
+            <div class="relative">
+              <div id="users-loading" class="hidden absolute inset-0 z-10 flex items-center justify-center bg-white/80">
+                <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-slate-300 border-r-slate-600"></div>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200">
+                  <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <tr>
+                      <th scope="col" class="px-4 py-3">User</th>
+                      <th scope="col" class="px-4 py-3">Role</th>
+                      <th scope="col" class="px-4 py-3">Documents</th>
+                      <th scope="col" class="px-4 py-3">Created</th>
+                      <th scope="col" class="px-4 py-3">Updated</th>
+                      <th scope="col" class="px-4 py-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="users-table-body" class="divide-y divide-slate-200 bg-white text-sm"></tbody>
+                </table>
+              </div>
+
+              <div id="users-empty" class="hidden px-6 py-10 text-center text-sm text-slate-600">
+                <p>No users found.</p>
+              </div>
+
+              <div id="users-error" class="hidden px-6 py-10 text-center text-sm text-red-600">
+                <p>Unable to load users. Please try again.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="not-authorized" class="hidden rounded-2xl border bg-white shadow-sm">
+        <div class="px-6 py-10 text-center">
+          <h2 class="text-lg font-semibold text-slate-900">Administrator access required</h2>
+          <p class="mt-2 text-sm text-slate-600">Sign in with an administrator account to manage users.</p>
+          <div class="mt-6 flex justify-center gap-3">
+            <button
+              class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black"
+              onclick="showLoginModal()"
+            >
+              Login
+            </button>
+            <a
+              href="/app.html"
+              class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+            >
+              Go back
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="fixed inset-0 bg-black bg-opacity-25" onclick="closeLoginModal()"></div>
+        <div class="relative w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
+          <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-900">Sign in to your account</h2>
+            <p class="mt-2 text-sm text-slate-600">Administrator privileges are required.</p>
+          </div>
+          <form id="login-form" class="space-y-6">
+            <div>
+              <label for="login-email" class="block text-sm font-medium text-slate-700">Email address</label>
+              <input
+                id="login-email"
+                type="email"
+                name="email"
+                required
+                autocomplete="email"
+                class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
+                placeholder="Enter your email"
+              >
+            </div>
+            <div>
+              <label for="login-password" class="block text-sm font-medium text-slate-700">Password</label>
+              <input
+                id="login-password"
+                type="password"
+                name="password"
+                required
+                autocomplete="current-password"
+                class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
+                placeholder="Enter your password"
+              >
+            </div>
+            <div>
+              <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                Sign in
+              </button>
+            </div>
+          </form>
+          <div class="mt-6 text-center">
+            <p class="text-sm text-slate-600">
+              Need to create an account?
+              <button onclick="showRegisterModal()" class="font-medium text-slate-900 hover:text-slate-700">Register</button>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="fixed inset-0 bg-black bg-opacity-25" onclick="closeRegisterModal()"></div>
+        <div class="relative w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
+          <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-900">Create an account</h2>
+            <p class="mt-2 text-sm text-slate-600">New accounts require approval to gain admin access.</p>
+          </div>
+          <form id="register-form" class="space-y-6">
+            <div>
+              <label for="register-name" class="block text-sm font-medium text-slate-700">Full name</label>
+              <input
+                id="register-name"
+                type="text"
+                name="name"
+                required
+                autocomplete="name"
+                class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
+                placeholder="Enter your full name"
+              >
+            </div>
+            <div>
+              <label for="register-email" class="block text-sm font-medium text-slate-700">Email address</label>
+              <input
+                id="register-email"
+                type="email"
+                name="email"
+                required
+                autocomplete="email"
+                class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
+                placeholder="Enter your email"
+              >
+            </div>
+            <div>
+              <label for="register-password" class="block text-sm font-medium text-slate-700">Password</label>
+              <input
+                id="register-password"
+                type="password"
+                name="password"
+                required
+                autocomplete="new-password"
+                class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
+                placeholder="Create a password"
+              >
+            </div>
+            <div>
+              <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                Register
+              </button>
+            </div>
+          </form>
+          <div class="mt-6 text-center">
+            <p class="text-sm text-slate-600">
+              Already have an account?
+              <button onclick="showLoginModal()" class="font-medium text-slate-900 hover:text-slate-700">Sign in</button>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentUser = null;
+      let users = [];
+
+      const adminContent = document.getElementById('admin-content');
+      const unauthorizedSection = document.getElementById('not-authorized');
+      const totalUsersEl = document.getElementById('total-users');
+      const totalAdminsEl = document.getElementById('total-admins');
+      const totalDocumentsEl = document.getElementById('total-documents');
+      const usersTableBody = document.getElementById('users-table-body');
+      const usersLoading = document.getElementById('users-loading');
+      const usersEmpty = document.getElementById('users-empty');
+      const usersError = document.getElementById('users-error');
+      const createUserForm = document.getElementById('create-user-form');
+      const createUserMessage = document.getElementById('create-user-message');
+      const refreshUsersBtn = document.getElementById('refresh-users');
+      const adminLink = document.getElementById('admin-link');
+      const userInfo = document.getElementById('user-info');
+      const loginBtn = document.getElementById('login-btn');
+      const logoutBtn = document.getElementById('logout-btn');
+      const loginModal = document.getElementById('login-modal');
+      const registerModal = document.getElementById('register-modal');
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+
+      function fetchWithCredentials(url, options = {}) {
+        const config = { ...options, credentials: 'include' };
+        if (options.headers) {
+          config.headers = { ...options.headers };
+        }
+        return fetch(url, config);
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        checkAuthStatus();
+        setupEventListeners();
+      });
+
+      function setupEventListeners() {
+        loginBtn.addEventListener('click', showLoginModal);
+        logoutBtn.addEventListener('click', handleLogout);
+        loginForm.addEventListener('submit', handleLogin);
+        registerForm.addEventListener('submit', handleRegister);
+        createUserForm.addEventListener('submit', handleCreateUser);
+        refreshUsersBtn.addEventListener('click', () => loadUsers());
+        usersTableBody.addEventListener('click', handleUserTableAction);
+      }
+
+      async function checkAuthStatus() {
+        try {
+          const response = await fetchWithCredentials('/api/auth/me');
+          if (response.ok) {
+            const data = await response.json();
+            currentUser = data.user;
+            updateUIForAuthenticatedUser();
+            if (currentUser.isAdmin) {
+              showAdminContent();
+              await loadUsers();
+            } else {
+              showUnauthorized();
+            }
+          } else {
+            updateUIForGuestUser();
+          }
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          updateUIForGuestUser();
+        }
+      }
+
+      function updateUIForAuthenticatedUser() {
+        userInfo.textContent = `Welcome, ${currentUser.name}`;
+        userInfo.classList.remove('hidden');
+        loginBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+        updateAdminLinkVisibility();
+      }
+
+      function updateUIForGuestUser() {
+        currentUser = null;
+        userInfo.classList.add('hidden');
+        loginBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+        hideAdminContent();
+        updateAdminLinkVisibility();
+        showUnauthorized();
+      }
+
+      function updateAdminLinkVisibility() {
+        if (currentUser?.isAdmin) {
+          adminLink.classList.remove('hidden');
+        } else {
+          adminLink.classList.add('hidden');
+        }
+      }
+
+      function showAdminContent() {
+        unauthorizedSection.classList.add('hidden');
+        adminContent.classList.remove('hidden');
+      }
+
+      function hideAdminContent() {
+        adminContent.classList.add('hidden');
+      }
+
+      function showUnauthorized() {
+        hideAdminContent();
+        unauthorizedSection.classList.remove('hidden');
+      }
+
+      async function loadUsers() {
+        if (!currentUser?.isAdmin) {
+          return;
+        }
+
+        usersLoading.classList.remove('hidden');
+        usersError.classList.add('hidden');
+        usersEmpty.classList.add('hidden');
+
+        try {
+          const response = await fetchWithCredentials('/api/admin/users');
+          if (response.status === 401) {
+            console.warn('Not authorized to fetch users');
+            showUnauthorized();
+            return;
+          }
+
+          const data = await response.json();
+          if (data.ok) {
+            users = data.users;
+            renderUsers();
+          } else {
+            throw new Error(data.error || 'Unknown error');
+          }
+        } catch (error) {
+          console.error('Failed to load users:', error);
+          usersError.classList.remove('hidden');
+        } finally {
+          usersLoading.classList.add('hidden');
+        }
+      }
+
+      function renderUsers() {
+        usersLoading.classList.add('hidden');
+        usersError.classList.add('hidden');
+
+        if (users.length === 0) {
+          usersTableBody.innerHTML = '';
+          usersEmpty.classList.remove('hidden');
+        } else {
+          usersEmpty.classList.add('hidden');
+          usersTableBody.innerHTML = users
+            .map((user) => {
+              const roleBadgeClass = user.isAdmin
+                ? 'bg-indigo-100 text-indigo-700'
+                : 'bg-slate-100 text-slate-700';
+              const roleLabel = user.isAdmin ? 'Administrator' : 'Standard';
+              const docCount = user.documentCount ?? 0;
+              const created = formatDate(user.createdAt);
+              const updated = formatDate(user.updatedAt);
+              const disableDangerousActions = currentUser && String(currentUser.id) === String(user.id);
+              const toggleClasses = disableDangerousActions && user.isAdmin
+                ? 'rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-400 cursor-not-allowed'
+                : 'rounded-lg border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100';
+              const toggleDisabledAttr = disableDangerousActions && user.isAdmin ? 'disabled' : '';
+              const deleteClasses = disableDangerousActions
+                ? 'rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-400 cursor-not-allowed'
+                : 'rounded-lg border border-red-200 px-3 py-1 text-xs font-medium text-red-600 hover:bg-red-50';
+              const deleteDisabledAttr = disableDangerousActions ? 'disabled' : '';
+
+              return `
+                <tr>
+                  <td class="whitespace-nowrap px-4 py-3">
+                    <div class="font-semibold text-slate-900">${user.name}</div>
+                    <div class="text-sm text-slate-500">${user.email}</div>
+                  </td>
+                  <td class="whitespace-nowrap px-4 py-3">
+                    <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${roleBadgeClass}">${roleLabel}</span>
+                  </td>
+                  <td class="whitespace-nowrap px-4 py-3 text-sm text-slate-600">${docCount}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-sm text-slate-600">${created}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-sm text-slate-600">${updated}</td>
+                  <td class="px-4 py-3">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <button
+                        class="${toggleClasses}"
+                        data-action="toggle-admin"
+                        data-user-id="${user.id}"
+                        ${toggleDisabledAttr}
+                      >
+                        ${user.isAdmin ? 'Revoke admin' : 'Make admin'}
+                      </button>
+                      <button
+                        class="rounded-lg border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                        data-action="edit"
+                        data-user-id="${user.id}"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        class="rounded-lg border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100"
+                        data-action="reset-password"
+                        data-user-id="${user.id}"
+                      >
+                        Reset password
+                      </button>
+                      <button
+                        class="${deleteClasses}"
+                        data-action="delete"
+                        data-user-id="${user.id}"
+                        ${deleteDisabledAttr}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            })
+            .join('');
+        }
+
+        updateSummary();
+      }
+
+      function updateSummary() {
+        const total = users.length;
+        const admins = users.filter((user) => user.isAdmin).length;
+        const documents = users.reduce((sum, user) => sum + (user.documentCount ?? 0), 0);
+
+        totalUsersEl.textContent = total;
+        totalAdminsEl.textContent = admins;
+        totalDocumentsEl.textContent = documents;
+      }
+
+      function formatDate(value) {
+        if (!value) return '—';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return '—';
+        }
+        return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      }
+
+      async function handleCreateUser(event) {
+        event.preventDefault();
+        createUserMessage.textContent = '';
+        createUserMessage.className = 'md:col-span-5 text-sm';
+
+        const formData = new FormData(createUserForm);
+        const payload = {
+          name: formData.get('name')?.toString().trim(),
+          email: formData.get('email')?.toString().trim(),
+          password: formData.get('password')?.toString(),
+          isAdmin: formData.get('isAdmin') === 'on'
+        };
+
+        if (!payload.name || !payload.email || !payload.password) {
+          showCreateUserMessage('error', 'Name, email, and password are required.');
+          return;
+        }
+
+        try {
+          const response = await fetchWithCredentials('/api/admin/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await response.json();
+          if (response.ok && data.ok) {
+            users.unshift(data.user);
+            renderUsers();
+            createUserForm.reset();
+            showCreateUserMessage('success', 'User created successfully.');
+          } else {
+            showCreateUserMessage('error', data.error === 'email_in_use' ? 'Email is already in use.' : 'Failed to create user.');
+          }
+        } catch (error) {
+          console.error('Create user failed:', error);
+          showCreateUserMessage('error', 'Failed to create user.');
+        }
+      }
+
+      function showCreateUserMessage(type, message) {
+        createUserMessage.textContent = message;
+        if (type === 'success') {
+          createUserMessage.className = 'md:col-span-5 text-sm font-medium text-green-600';
+        } else {
+          createUserMessage.className = 'md:col-span-5 text-sm font-medium text-red-600';
+        }
+      }
+
+      async function handleUserTableAction(event) {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+
+        const userId = Number.parseInt(button.dataset.userId, 10);
+        const action = button.dataset.action;
+        if (!userId || !action) return;
+
+        const user = users.find((item) => item.id === userId);
+        if (!user) return;
+
+        if (action === 'toggle-admin') {
+          await toggleAdmin(user);
+        } else if (action === 'edit') {
+          await editUser(user);
+        } else if (action === 'reset-password') {
+          await resetPassword(user);
+        } else if (action === 'delete') {
+          await deleteUser(user);
+        }
+      }
+
+      async function toggleAdmin(user) {
+        if (currentUser && currentUser.id === user.id && user.isAdmin) {
+          alert('You cannot revoke your own administrator access.');
+          return;
+        }
+
+        const desiredState = !user.isAdmin;
+        try {
+          const response = await fetchWithCredentials(`/api/admin/users/${user.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isAdmin: desiredState })
+          });
+
+          const data = await response.json();
+          if (response.ok && data.ok) {
+            users = users.map((item) => (item.id === user.id ? data.user : item));
+            renderUsers();
+          } else {
+            const message = data.error === 'cannot_remove_own_admin'
+              ? 'You cannot revoke your own administrator access.'
+              : 'Failed to update user.';
+            alert(message);
+          }
+        } catch (error) {
+          console.error('Toggle admin failed:', error);
+          alert('Failed to update user.');
+        }
+      }
+
+      async function editUser(user) {
+        const newName = prompt('Update full name', user.name);
+        if (newName === null) return;
+
+        const trimmedName = newName.trim();
+        if (!trimmedName) {
+          alert('Name is required.');
+          return;
+        }
+
+        const newEmail = prompt('Update email address', user.email);
+        if (newEmail === null) return;
+
+        const trimmedEmail = newEmail.trim();
+        if (!trimmedEmail) {
+          alert('Email is required.');
+          return;
+        }
+
+        try {
+          const response = await fetchWithCredentials(`/api/admin/users/${user.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: trimmedName, email: trimmedEmail })
+          });
+
+          const data = await response.json();
+          if (response.ok && data.ok) {
+            users = users.map((item) => (item.id === user.id ? data.user : item));
+            renderUsers();
+            if (currentUser && currentUser.id === user.id) {
+              currentUser = { ...currentUser, ...data.user };
+              updateUIForAuthenticatedUser();
+            }
+          } else {
+            const message = data.error === 'email_in_use' ? 'Email is already in use.' : 'Failed to update user.';
+            alert(message);
+          }
+        } catch (error) {
+          console.error('Edit user failed:', error);
+          alert('Failed to update user.');
+        }
+      }
+
+      async function resetPassword(user) {
+        const newPassword = prompt(`Enter a new password for ${user.name}`);
+        if (newPassword === null) return;
+        if (newPassword.length < 8) {
+          alert('Password must be at least 8 characters long.');
+          return;
+        }
+
+        try {
+          const response = await fetchWithCredentials(`/api/admin/users/${user.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password: newPassword })
+          });
+
+          const data = await response.json();
+          if (response.ok && data.ok) {
+            alert('Password updated successfully.');
+          } else {
+            alert('Failed to update password.');
+          }
+        } catch (error) {
+          console.error('Reset password failed:', error);
+          alert('Failed to update password.');
+        }
+      }
+
+      async function deleteUser(user) {
+        if (currentUser && currentUser.id === user.id) {
+          alert('You cannot delete your own account.');
+          return;
+        }
+
+        const confirmed = confirm(`Are you sure you want to delete ${user.name}? This will remove all of their documents.`);
+        if (!confirmed) return;
+
+        try {
+          const response = await fetchWithCredentials(`/api/admin/users/${user.id}`, {
+            method: 'DELETE'
+          });
+
+          if (response.ok) {
+            users = users.filter((item) => item.id !== user.id);
+            renderUsers();
+          } else {
+            const data = await response.json().catch(() => ({}));
+            alert(data.error === 'cannot_delete_self' ? 'You cannot delete your own account.' : 'Failed to delete user.');
+          }
+        } catch (error) {
+          console.error('Delete user failed:', error);
+          alert('Failed to delete user.');
+        }
+      }
+
+      async function handleLogin(event) {
+        event.preventDefault();
+
+        const formData = new FormData(loginForm);
+        const payload = Object.fromEntries(formData);
+
+        try {
+          const response = await fetchWithCredentials('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            currentUser = result.user;
+            closeLoginModal();
+            updateUIForAuthenticatedUser();
+            if (currentUser.isAdmin) {
+              showAdminContent();
+              await loadUsers();
+            } else {
+              showUnauthorized();
+              alert('You are signed in but not an administrator.');
+            }
+          } else {
+            alert('Login failed: ' + (result.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          alert('Login failed: ' + error.message);
+        }
+      }
+
+      async function handleRegister(event) {
+        event.preventDefault();
+
+        const formData = new FormData(registerForm);
+        const payload = Object.fromEntries(formData);
+
+        try {
+          const response = await fetchWithCredentials('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const result = await response.json();
+
+          if (response.ok && result.success) {
+            currentUser = result.user;
+            closeRegisterModal();
+            updateUIForAuthenticatedUser();
+            if (currentUser.isAdmin) {
+              showAdminContent();
+              await loadUsers();
+            } else {
+              showUnauthorized();
+              alert('Account created. An administrator must grant you admin access.');
+            }
+          } else {
+            alert('Registration failed: ' + (result.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Registration error:', error);
+          alert('Registration failed: ' + error.message);
+        }
+      }
+
+      async function handleLogout() {
+        try {
+          await fetchWithCredentials('/api/auth/logout', { method: 'POST' });
+          currentUser = null;
+          users = [];
+          updateUIForGuestUser();
+          alert('Logged out successfully.');
+        } catch (error) {
+          console.error('Logout failed:', error);
+          alert('Failed to logout.');
+        }
+      }
+
+      function showLoginModal() {
+        loginModal.classList.remove('hidden');
+      }
+
+      function closeLoginModal() {
+        loginModal.classList.add('hidden');
+      }
+
+      function showRegisterModal() {
+        registerModal.classList.remove('hidden');
+      }
+
+      function closeRegisterModal() {
+        registerModal.classList.add('hidden');
+      }
+
+      window.showLoginModal = showLoginModal;
+      window.closeLoginModal = closeLoginModal;
+      window.showRegisterModal = showRegisterModal;
+      window.closeRegisterModal = closeRegisterModal;
+    </script>
+  </body>
+</html>

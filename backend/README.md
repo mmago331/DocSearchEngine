@@ -113,25 +113,22 @@ The application uses ES modules and requires Node.js 20 or higher.
 ```
 backend/
 ├── src/
-│   ├── db/
-│   │   ├── pg.ts                # Shared PostgreSQL pool
-│   │   └── schema.ts            # Database schema bootstrap
+│   ├── config/
+│   │   └── database.js          # Database configuration
 │   ├── middleware/
 │   │   └── auth.js              # Authentication middleware
 │   ├── routes/
 │   │   ├── auth.js              # Authentication routes
 │   │   ├── documents.js         # Document management routes
 │   │   └── search.js            # Search routes
-│   ├── server.ts                # Express server entry point
-│   └── types/
-│       └── global.d.ts          # Minimal ambient typings
+│   └── app.js                   # Main application
 ├── public/
 │   ├── app.html                 # Main search interface
 │   ├── library.html             # Document library
 │   ├── explore.html             # Public documents
 │   └── index.html               # Home page
 ├── uploads/                     # Document storage
-└── dist/                        # Compiled output (`npm run build`)
+└── server.js                    # Server entry point
 ```
 
 ## Security Considerations

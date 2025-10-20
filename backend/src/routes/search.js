@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { pool } from '../db/pg.js';
+import { createConnection, executeQuery } from '../config/database.js';
 
 const router = Router();
 
@@ -108,7 +108,7 @@ router.get('/search', async (req, res) => {
         }
       }
 
-      const { rows: results } = await pool.query(query, parameters);
+      const results = await executeQuery(query, parameters);
 
       // Format results for frontend
       const formattedResults = results.map((row, index) => ({

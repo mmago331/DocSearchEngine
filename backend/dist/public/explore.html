@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>DocSearchEngine • Document Search</title>
+    <title>DocSearchEngine • Explore Public Documents</title>
 
     <!-- Inter font -->
     <link rel="preconnect" href="https://rsms.me" />
@@ -30,7 +30,7 @@
         <ul class="flex items-center gap-6 text-sm">
           <li><a class="text-slate-600 hover:text-slate-900" href="/app.html">Search</a></li>
           <li><a class="text-slate-600 hover:text-slate-900" href="/library.html">My Library</a></li>
-          <li><a class="text-slate-600 hover:text-slate-900" href="/explore.html">Explore</a></li>
+          <li><a class="text-slate-900 font-medium" href="/explore.html">Explore</a></li>
           <li><a id="admin-link" class="hidden text-slate-600 hover:text-slate-900" href="/admin.html">Admin</a></li>
           <li id="auth-section">
             <span id="user-info" class="hidden text-slate-600"></span>
@@ -45,108 +45,46 @@
       <!-- Search Section -->
       <section class="mb-8 rounded-2xl border bg-white shadow-sm">
         <div class="border-b px-6 py-5">
-          <h2 class="text-lg font-semibold">Search Documents</h2>
+          <h2 class="text-lg font-semibold">Search Public Documents</h2>
           <p class="mt-1 text-sm text-slate-600">
-            Search through your uploaded documents and public documents shared by others.
-          </p>
-        </div>
-
-        <div class="grid gap-6 px-6 py-6 md:grid-cols-2">
-          <!-- Search Input -->
-          <div>
-            <label for="search-input" class="block text-sm font-medium text-slate-700">Search</label>
-            <input
-              id="search-input"
-              name="q"
-              type="text"
-              placeholder="Enter search terms..."
-              class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400"
-            />
-          </div>
-
-          <!-- Filter -->
-          <div>
-            <label for="filter-select" class="block text-sm font-medium text-slate-700">Filter</label>
-            <select
-              id="filter-select"
-              name="filter"
-              class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400"
-            >
-              <option value="all">All Documents</option>
-              <option value="my">My Documents</option>
-              <option value="public">Public Documents</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-end gap-3 border-t px-6 py-5">
-          <button
-            id="clear-btn"
-            type="button"
-            class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-          >
-            Clear
-          </button>
-          <button
-            id="search-btn"
-            type="button"
-            class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black"
-          >
-            Search
-          </button>
-        </div>
-      </section>
-
-      <!-- Upload Section (for authenticated users) -->
-      <section id="upload-section" class="mb-8 rounded-2xl border bg-white shadow-sm hidden">
-        <div class="border-b px-6 py-5">
-          <h2 class="text-lg font-semibold">Upload Document</h2>
-          <p class="mt-1 text-sm text-slate-600">
-            Upload PDF or text files to add them to your searchable library.
+            Search through documents shared publicly by other users.
           </p>
         </div>
 
         <div class="px-6 py-6">
-          <form id="upload-form" enctype="multipart/form-data">
-            <div class="grid gap-6 md:grid-cols-2">
-              <div>
-                <label for="file-input" class="block text-sm font-medium text-slate-700">Choose File</label>
-                <input
-                  id="file-input"
-                  name="document"
-                  type="file"
-                  accept=".pdf,.txt"
-                  class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-50 file:text-slate-700 hover:file:bg-slate-100"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-slate-700">Visibility</label>
-                <div class="mt-2 space-y-2">
-                  <label class="flex items-center">
-                    <input type="radio" name="isPublic" value="false" checked class="rounded border-slate-300 text-slate-600 focus:ring-slate-500">
-                    <span class="ml-2 text-sm text-slate-700">Private (only you can search)</span>
-                  </label>
-                  <label class="flex items-center">
-                    <input type="radio" name="isPublic" value="true" class="rounded border-slate-300 text-slate-600 focus:ring-slate-500">
-                    <span class="ml-2 text-sm text-slate-700">Public (everyone can search)</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-            <div class="mt-6 flex justify-end">
-              <button
-                type="submit"
-                class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black"
-              >
-                Upload Document
-              </button>
-            </div>
-          </form>
+          <div class="flex gap-4">
+            <input
+              id="search-input"
+              type="text"
+              placeholder="Enter search terms..."
+              class="flex-1 rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400"
+            />
+            <button
+              id="search-btn"
+              class="rounded-lg bg-slate-900 px-6 py-2 text-sm font-semibold text-white hover:bg-black"
+            >
+              Search
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Public Documents List -->
+      <section class="rounded-2xl border bg-white shadow-sm">
+        <div class="border-b px-6 py-5">
+          <h2 class="text-lg font-semibold">Public Documents</h2>
+          <p id="documents-count" class="mt-1 text-sm text-slate-600">Loading...</p>
+        </div>
+        <div id="documents-container" class="p-6">
+          <div class="text-center py-8">
+            <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-slate-300 border-r-slate-600"></div>
+            <p class="mt-2 text-sm text-slate-600">Loading documents...</p>
+          </div>
         </div>
       </section>
 
       <!-- Search Results -->
-      <section id="results-section" class="rounded-2xl border bg-white shadow-sm hidden">
+      <section id="results-section" class="mt-8 rounded-2xl border bg-white shadow-sm hidden">
         <div class="border-b px-6 py-5">
           <h2 class="text-lg font-semibold">Search Results</h2>
           <p id="results-count" class="mt-1 text-sm text-slate-600"></p>
@@ -155,12 +93,6 @@
           <!-- Results will be populated here -->
         </div>
       </section>
-
-      <!-- Loading State -->
-      <div id="loading" class="hidden text-center py-8">
-        <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-slate-300 border-r-slate-600"></div>
-        <p class="mt-2 text-sm text-slate-600">Searching...</p>
-      </div>
     </main>
 
     <!-- Login Modal -->
@@ -175,11 +107,11 @@
           <form id="login-form" class="space-y-6">
             <div>
               <label for="login-email" class="block text-sm font-medium text-slate-700">Email address</label>
-              <input 
+              <input
                 id="login-email"
-                type="email" 
-                name="email" 
-                required 
+                type="email"
+                name="email"
+                required
                 autocomplete="email"
                 class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
                 placeholder="Enter your email"
@@ -187,11 +119,11 @@
             </div>
             <div>
               <label for="login-password" class="block text-sm font-medium text-slate-700">Password</label>
-              <input 
+              <input
                 id="login-password"
-                type="password" 
-                name="password" 
-                required 
+                type="password"
+                name="password"
+                required
                 autocomplete="current-password"
                 class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
                 placeholder="Enter your password"
@@ -215,7 +147,7 @@
           <div class="mt-6">
             <div class="relative">
               <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-slate-300" />
+                <div class="w-full border-t border-slate-300"></div>
               </div>
               <div class="relative flex justify-center text-sm">
                 <span class="px-2 bg-white text-slate-500">Or continue with</span>
@@ -223,7 +155,7 @@
             </div>
             <div class="mt-6 text-center">
               <p class="text-sm text-slate-600">
-                Don't have an account? 
+                Don't have an account?
                 <button onclick="showRegisterModal()" class="font-medium text-slate-900 hover:text-slate-700">Sign up</button>
               </p>
             </div>
@@ -244,11 +176,11 @@
           <form id="register-form" class="space-y-6">
             <div>
               <label for="register-name" class="block text-sm font-medium text-slate-700">Full name</label>
-              <input 
+              <input
                 id="register-name"
-                type="text" 
-                name="name" 
-                required 
+                type="text"
+                name="name"
+                required
                 autocomplete="name"
                 class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
                 placeholder="Enter your full name"
@@ -256,11 +188,11 @@
             </div>
             <div>
               <label for="register-email" class="block text-sm font-medium text-slate-700">Email address</label>
-              <input 
+              <input
                 id="register-email"
-                type="email" 
-                name="email" 
-                required 
+                type="email"
+                name="email"
+                required
                 autocomplete="email"
                 class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
                 placeholder="Enter your email"
@@ -268,11 +200,11 @@
             </div>
             <div>
               <label for="register-password" class="block text-sm font-medium text-slate-700">Password</label>
-              <input 
+              <input
                 id="register-password"
-                type="password" 
-                name="password" 
-                required 
+                type="password"
+                name="password"
+                required
                 autocomplete="new-password"
                 class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
                 placeholder="Create a password"
@@ -293,7 +225,7 @@
           <div class="mt-6">
             <div class="relative">
               <div class="absolute inset-0 flex items-center">
-                <div class="w-full border-t border-slate-300" />
+                <div class="w-full border-t border-slate-300"></div>
               </div>
               <div class="relative flex justify-center text-sm">
                 <span class="px-2 bg-white text-slate-500">Or continue with</span>
@@ -301,7 +233,7 @@
             </div>
             <div class="mt-6 text-center">
               <p class="text-sm text-slate-600">
-                Already have an account? 
+                Already have an account?
                 <button onclick="showLoginModal()" class="font-medium text-slate-900 hover:text-slate-700">Sign in</button>
               </p>
             </div>
@@ -316,15 +248,12 @@
 
       // DOM elements
       const searchInput = document.getElementById('search-input');
-      const filterSelect = document.getElementById('filter-select');
       const searchBtn = document.getElementById('search-btn');
-      const clearBtn = document.getElementById('clear-btn');
+      const documentsContainer = document.getElementById('documents-container');
+      const documentsCount = document.getElementById('documents-count');
       const resultsSection = document.getElementById('results-section');
       const resultsContainer = document.getElementById('results-container');
       const resultsCount = document.getElementById('results-count');
-      const loading = document.getElementById('loading');
-      const uploadSection = document.getElementById('upload-section');
-      const uploadForm = document.getElementById('upload-form');
       const userInfo = document.getElementById('user-info');
       const loginBtn = document.getElementById('login-btn');
       const logoutBtn = document.getElementById('logout-btn');
@@ -346,6 +275,7 @@
       document.addEventListener('DOMContentLoaded', () => {
         checkAuthStatus();
         setupEventListeners();
+        loadPublicDocuments();
       });
 
       // Check authentication status
@@ -367,12 +297,10 @@
 
       // Update UI for authenticated user
       function updateUIForAuthenticatedUser() {
-        const adminBadge = currentUser.isAdmin ? ' (Admin)' : '';
-        userInfo.textContent = `Welcome, ${currentUser.name}${adminBadge}`;
+        userInfo.textContent = `Welcome, ${currentUser.name}`;
         userInfo.classList.remove('hidden');
         loginBtn.classList.add('hidden');
         logoutBtn.classList.remove('hidden');
-        uploadSection.classList.remove('hidden');
         updateAdminLinkVisibility();
       }
 
@@ -381,7 +309,6 @@
         userInfo.classList.add('hidden');
         loginBtn.classList.remove('hidden');
         logoutBtn.classList.add('hidden');
-        uploadSection.classList.add('hidden');
         currentUser = null;
         updateAdminLinkVisibility();
       }
@@ -397,49 +324,88 @@
       // Setup event listeners
       function setupEventListeners() {
         searchBtn.addEventListener('click', performSearch);
-        clearBtn.addEventListener('click', clearSearch);
         searchInput.addEventListener('keypress', (e) => {
           if (e.key === 'Enter') performSearch();
         });
-        uploadForm.addEventListener('submit', handleUpload);
         loginForm.addEventListener('submit', handleLogin);
         registerForm.addEventListener('submit', handleRegister);
         logoutBtn.addEventListener('click', handleLogout);
         loginBtn.addEventListener('click', showLoginModal);
       }
 
+      // Load public documents
+      async function loadPublicDocuments() {
+        try {
+          const response = await fetchWithCredentials('/api/documents/public');
+          const data = await response.json();
+
+          if (data.success) {
+            displayDocuments(data.documents);
+          } else {
+            showError('Failed to load documents: ' + (data.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Load documents error:', error);
+          showError('Failed to load documents: ' + error.message);
+        }
+      }
+
+      // Display documents
+      function displayDocuments(documents) {
+        documentsCount.textContent = `Found ${documents.length} public document${documents.length !== 1 ? 's' : ''}`;
+        
+        if (documents.length === 0) {
+          documentsContainer.innerHTML = '<div class="text-center py-8 text-slate-500">No public documents available</div>';
+        } else {
+          documentsContainer.innerHTML = documents.map(doc => `
+            <div class="border-b border-slate-200 py-4 last:border-b-0">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <h3 class="text-lg font-medium text-slate-900">${doc.original_name}</h3>
+                  <div class="mt-1 flex items-center space-x-4 text-sm text-slate-600">
+                    <span>Size: ${formatFileSize(doc.file_size)}</span>
+                    <span>Type: ${doc.file_type}</span>
+                    <span>By: ${doc.uploader_name}</span>
+                    <span>Uploaded: ${new Date(doc.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button onclick="searchDocument('${doc.original_name}')" class="rounded-lg bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-200">
+                    Search
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
       // Perform search
       async function performSearch() {
         const query = searchInput.value.trim();
-        const filter = filterSelect.value;
 
         if (!query) {
           alert('Please enter a search term');
           return;
         }
 
-        showLoading(true);
-        resultsSection.classList.add('hidden');
-
         try {
-          const response = await fetchWithCredentials(`/api/search?q=${encodeURIComponent(query)}&filter=${encodeURIComponent(filter)}`);
+          const response = await fetchWithCredentials(`/api/search?q=${encodeURIComponent(query)}&filter=public`);
           const data = await response.json();
 
           if (data.ok) {
-            displayResults(data);
+            displaySearchResults(data);
           } else {
             showError('Search failed: ' + (data.error || 'Unknown error'));
           }
         } catch (error) {
           console.error('Search error:', error);
           showError('Search failed: ' + error.message);
-        } finally {
-          showLoading(false);
         }
       }
 
       // Display search results
-      function displayResults(data) {
+      function displaySearchResults(data) {
         resultsCount.textContent = `Found ${data.count} result${data.count !== 1 ? 's' : ''} for "${data.q}"`;
         
         if (data.count === 0) {
@@ -466,52 +432,24 @@
         resultsSection.classList.remove('hidden');
       }
 
-      // Clear search
-      function clearSearch() {
-        searchInput.value = '';
-        filterSelect.value = 'all';
-        resultsSection.classList.add('hidden');
+      // Search document
+      function searchDocument(filename) {
+        searchInput.value = filename;
+        performSearch();
       }
 
-      // Show/hide loading
-      function showLoading(show) {
-        if (show) {
-          loading.classList.remove('hidden');
-        } else {
-          loading.classList.add('hidden');
-        }
+      // Format file size
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
       }
 
       // Show error
       function showError(message) {
-        resultsContainer.innerHTML = `<div class="rounded-md bg-red-50 p-3 text-sm text-red-700">${message}</div>`;
-        resultsSection.classList.remove('hidden');
-      }
-
-      // Handle file upload
-      async function handleUpload(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(uploadForm);
-        
-        try {
-          const response = await fetchWithCredentials('/api/documents/upload', {
-            method: 'POST',
-            body: formData
-          });
-          
-          const data = await response.json();
-          
-          if (data.success) {
-            alert('Document uploaded successfully!');
-            uploadForm.reset();
-          } else {
-            alert('Upload failed: ' + (data.error || 'Unknown error'));
-          }
-        } catch (error) {
-          console.error('Upload error:', error);
-          alert('Upload failed: ' + error.message);
-        }
+        documentsContainer.innerHTML = `<div class="rounded-md bg-red-50 p-3 text-sm text-red-700">${message}</div>`;
       }
 
       // Handle login
@@ -580,7 +518,6 @@
           await fetchWithCredentials('/api/auth/logout', { method: 'POST' });
           currentUser = null;
           updateUIForGuestUser();
-          clearSearch();
           alert('Logged out successfully!');
         } catch (error) {
           console.error('Logout error:', error);
@@ -612,6 +549,7 @@
       window.closeLoginModal = closeLoginModal;
       window.showRegisterModal = showRegisterModal;
       window.closeRegisterModal = closeRegisterModal;
+      window.searchDocument = searchDocument;
     </script>
   </body>
 </html>

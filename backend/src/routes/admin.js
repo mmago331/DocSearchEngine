@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { pool } from '../db/pg.js';
+import { executeQuery } from '../config/database.js';
 import { hashPassword } from '../middleware/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -56,7 +56,7 @@ function parseBoolean(value) {
 
 router.get('/users', requireAdmin, async (_req, res) => {
   try {
-    const { rows } = await pool.query(
+    const rows = await executeQuery(
       `SELECT u.id, u.email, u.name, u.is_admin, u.created_at, u.updated_at,
               COUNT(d.id) AS document_count
          FROM users u
@@ -89,12 +89,12 @@ router.post('/users', requireAdmin, async (req, res) => {
   }
 
   try {
-    const { rows: existing } = await pool.query('SELECT id FROM users WHERE email = $1', [normalizedEmail]);
+    const existing = await executeQuery('SELECT id FROM users WHERE email = $1', [normalizedEmail]);
     if (existing.length > 0) {
       return res.status(400).json({ ok: false, error: 'email_in_use' });
     }
 
-    const { rows } = await pool.query(
+    const rows = await executeQuery(
       `INSERT INTO users (email, password_hash, name, is_admin)
        VALUES ($1, $2, $3, $4)
        RETURNING id, email, name, is_admin, created_at, updated_at`,
@@ -167,7 +167,7 @@ router.patch('/users/:id', requireAdmin, async (req, res) => {
   params.push(userId);
 
   try {
-    const { rows } = await pool.query(
+    const rows = await executeQuery(
       `UPDATE users
           SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP
         WHERE id = $${paramIndex}
@@ -200,7 +200,7 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
   }
 
   try {
-    const { rows } = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [userId]);
+    const rows = await executeQuery('DELETE FROM users WHERE id = $1 RETURNING id', [userId]);
     if (rows.length === 0) {
       return res.status(404).json({ ok: false, error: 'user_not_found' });
     }
@@ -230,7 +230,7 @@ router.post('/seed', requireAdmin, async (req, res) => {
     let inserted = 0;
     for (const doc of docs) {
       try {
-        await pool.query(
+        await executeQuery(
           `INSERT INTO documents (id, user_id, filename, original_name, file_path, file_size, file_type, is_public)
            VALUES ($1, 1, $2, $3, $4, $5, $6, true)
            ON CONFLICT (id) DO UPDATE SET
@@ -244,7 +244,7 @@ router.post('/seed', requireAdmin, async (req, res) => {
         );
 
         // Insert content into search_index
-        await pool.query(
+        await executeQuery(
           `INSERT INTO search_index (document_id, content, page_number)
            VALUES ($1, $2, 1)
            ON CONFLICT (document_id) DO UPDATE SET
