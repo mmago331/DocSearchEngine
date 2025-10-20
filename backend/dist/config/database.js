@@ -2,23 +2,6 @@ import pkg from 'pg';
 
 const { Pool } = pkg;
 
-const CONNECTION_ENV_KEYS = [
-  'PG_URL',
-  'POSTGRES_URL',
-  'POSTGRESQL_URL',
-  'PG_CONNECTION_STRING'
-];
-
-function getConnectionString() {
-  for (const key of CONNECTION_ENV_KEYS) {
-    const value = process.env[key];
-    if (value) {
-      return { value, source: key };
-    }
-  }
-  return { value: null, source: null };
-}
-
 function shouldEnableSsl(connectionString) {
   if (!connectionString) {
     return false;

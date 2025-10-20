@@ -6,7 +6,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "start": "node server.js"
+    "build": "rm -rf dist && mkdir -p dist && cp -R src/. dist/ && cp -R public dist/public && sed 's#./src/app.js#./app.js#' server.js > dist/server.js",
+    "start": "node dist/server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
