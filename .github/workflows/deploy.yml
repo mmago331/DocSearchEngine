@@ -44,5 +44,5 @@ jobs:
       - name: Deploy to Azure Web App (prod)
         uses: azure/webapps-deploy@v3
         with:
-          app-name: docsearchengine-amd3dvf7hch0cnax
+          app-name: 'DocSearchEngine'
           package: backend.zip
