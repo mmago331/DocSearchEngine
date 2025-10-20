@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DocSearchEngine • My Library</title>
+
+    <!-- Inter font -->
+    <link rel="preconnect" href="https://rsms.me" />
+    <link href="https://rsms.me/inter/inter.css" rel="stylesheet" />
+
+    <!-- Tailwind Play CDN + forms plugin -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          container: { center: true, padding: "1rem" },
+          extend: {
+            fontFamily: { sans: ["Inter", "ui-sans-serif", "system-ui", "Segoe UI", "Helvetica", "Arial", "Apple Color Emoji", "Segoe UI Emoji"] },
+          },
+        },
+      };
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-50 font-sans text-slate-900">
+    <!-- Top bar -->
+    <header class="border-b bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+      <nav class="container flex h-14 items-center justify-between">
+        <a href="/app.html" class="text-lg font-semibold tracking-tight">DocSearchEngine</a>
+        <ul class="flex items-center gap-6 text-sm">
+          <li><a class="text-slate-600 hover:text-slate-900" href="/app.html">Search</a></li>
+          <li><a class="text-slate-900 font-medium" href="/library.html">My Library</a></li>
+          <li><a class="text-slate-600 hover:text-slate-900" href="/explore.html">Explore</a></li>
+          <li><a id="admin-link" class="hidden text-slate-600 hover:text-slate-900" href="/admin.html">Admin</a></li>
+          <li id="auth-section">
+            <span id="user-info" class="hidden text-slate-600"></span>
+            <button id="login-btn" class="text-slate-600 hover:text-slate-900">Login</button>
+            <button id="logout-btn" class="hidden text-slate-600 hover:text-slate-900">Logout</button>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="container py-10">
+      <!-- Upload Section -->
+      <section class="mb-8 rounded-2xl border bg-white shadow-sm">
+        <div class="border-b px-6 py-5">
+          <h2 class="text-lg font-semibold">Upload New Document</h2>
+          <p class="mt-1 text-sm text-slate-600">
+            Upload PDF or text files to add them to your searchable library.
+          </p>
+        </div>
+
+        <div class="px-6 py-6">
+          <form id="upload-form" enctype="multipart/form-data">
+            <div class="grid gap-6 md:grid-cols-2">
+              <div>
+                <label for="file-input" class="block text-sm font-medium text-slate-700">Choose File</label>
+                <input
+                  id="file-input"
+                  name="document"
+                  type="file"
+                  accept=".pdf,.txt"
+                  class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-slate-50 file:text-slate-700 hover:file:bg-slate-100"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700">Visibility</label>
+                <div class="mt-2 space-y-2">
+                  <label class="flex items-center">
+                    <input type="radio" name="isPublic" value="false" checked class="rounded border-slate-300 text-slate-600 focus:ring-slate-500">
+                    <span class="ml-2 text-sm text-slate-700">Private (only you can search)</span>
+                  </label>
+                  <label class="flex items-center">
+                    <input type="radio" name="isPublic" value="true" class="rounded border-slate-300 text-slate-600 focus:ring-slate-500">
+                    <span class="ml-2 text-sm text-slate-700">Public (everyone can search)</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="mt-6 flex justify-end">
+              <button
+                type="submit"
+                class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black"
+              >
+                Upload Document
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Documents List -->
+      <section class="rounded-2xl border bg-white shadow-sm">
+        <div class="border-b px-6 py-5">
+          <h2 class="text-lg font-semibold">My Documents</h2>
+          <p id="documents-count" class="mt-1 text-sm text-slate-600">Loading...</p>
+        </div>
+        <div id="documents-container" class="p-6">
+          <div class="text-center py-8">
+            <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-slate-300 border-r-slate-600"></div>
+            <p class="mt-2 text-sm text-slate-600">Loading documents...</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="fixed inset-0 bg-black bg-opacity-25" onclick="closeLoginModal()"></div>
+        <div class="relative w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
+          <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-900">Sign in to your account</h2>
+            <p class="mt-2 text-sm text-slate-600">Welcome back to DocSearchEngine</p>
+          </div>
+          <form id="login-form" class="space-y-6">
+            <div>
+              <label for="login-email" class="block text-sm font-medium text-slate-700">Email address</label>
+              <input
+                id="login-email"
+                type="email"
+                name="email"
+                required
+                autocomplete="email"
+                class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
+                placeholder="Enter your email"
+              >
+            </div>
+            <div>
+              <label for="login-password" class="block text-sm font-medium text-slate-700">Password</label>
+              <input
+                id="login-password"
+                type="password"
+                name="password"
+                required
+                autocomplete="current-password"
+                class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
+                placeholder="Enter your password"
+              >
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500">
+                <label for="remember-me" class="ml-2 block text-sm text-slate-700">Remember me</label>
+              </div>
+              <div class="text-sm">
+                <a href="#" class="font-medium text-slate-600 hover:text-slate-500">Forgot your password?</a>
+              </div>
+            </div>
+            <div>
+              <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                Sign in
+              </button>
+            </div>
+          </form>
+          <div class="mt-6">
+            <div class="relative">
+              <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-slate-300"></div>
+              </div>
+              <div class="relative flex justify-center text-sm">
+                <span class="px-2 bg-white text-slate-500">Or continue with</span>
+              </div>
+            </div>
+            <div class="mt-6 text-center">
+              <p class="text-sm text-slate-600">
+                Don't have an account?
+                <button onclick="showRegisterModal()" class="font-medium text-slate-900 hover:text-slate-700">Sign up</button>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="register-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+      <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="fixed inset-0 bg-black bg-opacity-25" onclick="closeRegisterModal()"></div>
+        <div class="relative w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
+          <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-900">Create your account</h2>
+            <p class="mt-2 text-sm text-slate-600">Join DocSearchEngine today</p>
+          </div>
+          <form id="register-form" class="space-y-6">
+            <div>
+              <label for="register-name" class="block text-sm font-medium text-slate-700">Full name</label>
+              <input
+                id="register-name"
+                type="text"
+                name="name"
+                required
+                autocomplete="name"
+                class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
+                placeholder="Enter your full name"
+              >
+            </div>
+            <div>
+              <label for="register-email" class="block text-sm font-medium text-slate-700">Email address</label>
+              <input
+                id="register-email"
+                type="email"
+                name="email"
+                required
+                autocomplete="email"
+                class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
+                placeholder="Enter your email"
+              >
+            </div>
+            <div>
+              <label for="register-password" class="block text-sm font-medium text-slate-700">Password</label>
+              <input
+                id="register-password"
+                type="password"
+                name="password"
+                required
+                autocomplete="new-password"
+                class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm focus:border-slate-400 focus:ring-slate-400 sm:text-sm"
+                placeholder="Create a password"
+              >
+            </div>
+            <div class="flex items-center">
+              <input id="terms" name="terms" type="checkbox" required class="h-4 w-4 rounded border-slate-300 text-slate-600 focus:ring-slate-500">
+              <label for="terms" class="ml-2 block text-sm text-slate-700">
+                I agree to the <a href="#" class="text-slate-600 hover:text-slate-500">Terms of Service</a> and <a href="#" class="text-slate-600 hover:text-slate-500">Privacy Policy</a>
+              </label>
+            </div>
+            <div>
+              <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500">
+                Create account
+              </button>
+            </div>
+          </form>
+          <div class="mt-6">
+            <div class="relative">
+              <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-slate-300"></div>
+              </div>
+              <div class="relative flex justify-center text-sm">
+                <span class="px-2 bg-white text-slate-500">Or continue with</span>
+              </div>
+            </div>
+            <div class="mt-6 text-center">
+              <p class="text-sm text-slate-600">
+                Already have an account?
+                <button onclick="showLoginModal()" class="font-medium text-slate-900 hover:text-slate-700">Sign in</button>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Global state
+      let currentUser = null;
+
+      // DOM elements
+      const uploadForm = document.getElementById('upload-form');
+      const documentsContainer = document.getElementById('documents-container');
+      const documentsCount = document.getElementById('documents-count');
+      const userInfo = document.getElementById('user-info');
+      const loginBtn = document.getElementById('login-btn');
+      const logoutBtn = document.getElementById('logout-btn');
+      const loginModal = document.getElementById('login-modal');
+      const registerModal = document.getElementById('register-modal');
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+      const adminLink = document.getElementById('admin-link');
+
+      function fetchWithCredentials(url, options = {}) {
+        const config = { ...options, credentials: 'include' };
+        if (options.headers) {
+          config.headers = { ...options.headers };
+        }
+        return fetch(url, config);
+      }
+
+      // Initialize app
+      document.addEventListener('DOMContentLoaded', () => {
+        checkAuthStatus();
+        setupEventListeners();
+      });
+
+      // Check authentication status
+      async function checkAuthStatus() {
+        try {
+          const response = await fetchWithCredentials('/api/auth/me');
+          if (response.ok) {
+            const data = await response.json();
+            currentUser = data.user;
+            updateUIForAuthenticatedUser();
+            loadDocuments();
+          } else {
+            updateUIForGuestUser();
+          }
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          updateUIForGuestUser();
+        }
+      }
+
+      // Update UI for authenticated user
+      function updateUIForAuthenticatedUser() {
+        userInfo.textContent = `Welcome, ${currentUser.name}`;
+        userInfo.classList.remove('hidden');
+        loginBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+        updateAdminLinkVisibility();
+      }
+
+      // Update UI for guest user
+      function updateUIForGuestUser() {
+        userInfo.classList.add('hidden');
+        loginBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+        currentUser = null;
+        updateAdminLinkVisibility();
+        documentsContainer.innerHTML = '<div class="text-center py-8 text-slate-500">Please login to view your documents</div>';
+        documentsCount.textContent = 'Please login to view your documents';
+      }
+
+      function updateAdminLinkVisibility() {
+        if (currentUser?.isAdmin) {
+          adminLink.classList.remove('hidden');
+        } else {
+          adminLink.classList.add('hidden');
+        }
+      }
+
+      // Setup event listeners
+      function setupEventListeners() {
+        uploadForm.addEventListener('submit', handleUpload);
+        loginForm.addEventListener('submit', handleLogin);
+        registerForm.addEventListener('submit', handleRegister);
+        logoutBtn.addEventListener('click', handleLogout);
+        loginBtn.addEventListener('click', showLoginModal);
+      }
+
+      // Load user documents
+      async function loadDocuments() {
+        try {
+          const response = await fetchWithCredentials('/api/documents/my-documents');
+          const data = await response.json();
+
+          if (data.success) {
+            displayDocuments(data.documents);
+          } else {
+            showError('Failed to load documents: ' + (data.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Load documents error:', error);
+          showError('Failed to load documents: ' + error.message);
+        }
+      }
+
+      // Display documents
+      function displayDocuments(documents) {
+        documentsCount.textContent = `You have ${documents.length} document${documents.length !== 1 ? 's' : ''}`;
+        
+        if (documents.length === 0) {
+          documentsContainer.innerHTML = '<div class="text-center py-8 text-slate-500">No documents uploaded yet</div>';
+        } else {
+          documentsContainer.innerHTML = documents.map(doc => `
+            <div class="border-b border-slate-200 py-4 last:border-b-0">
+              <div class="flex items-center justify-between">
+                <div class="flex-1">
+                  <h3 class="text-lg font-medium text-slate-900">${doc.original_name}</h3>
+                  <div class="mt-1 flex items-center space-x-4 text-sm text-slate-600">
+                    <span>Size: ${formatFileSize(doc.file_size)}</span>
+                    <span>Type: ${doc.file_type}</span>
+                    <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${doc.is_public ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                      ${doc.is_public ? 'Public' : 'Private'}
+                    </span>
+                    <span>Uploaded: ${new Date(doc.created_at).toLocaleDateString()}</span>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <button onclick="searchDocument('${doc.original_name}')" class="rounded-lg bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700 hover:bg-slate-200">
+                    Search
+                  </button>
+                  <button onclick="deleteDocument(${doc.id}, '${doc.original_name}')" class="rounded-lg bg-red-100 px-3 py-1 text-sm font-medium text-red-700 hover:bg-red-200">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // Format file size
+      function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+      }
+
+      // Search document
+      function searchDocument(filename) {
+        window.location.href = `/app.html?q=${encodeURIComponent(filename)}&filter=my`;
+      }
+
+      // Delete document
+      async function deleteDocument(id, filename) {
+        if (!confirm(`Are you sure you want to delete "${filename}"?`)) {
+          return;
+        }
+
+        try {
+          const response = await fetchWithCredentials(`/api/documents/${id}`, {
+            method: 'DELETE'
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            alert('Document deleted successfully!');
+            loadDocuments(); // Reload the list
+          } else {
+            alert('Delete failed: ' + (data.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Delete error:', error);
+          alert('Delete failed: ' + error.message);
+        }
+      }
+
+      // Show error
+      function showError(message) {
+        documentsContainer.innerHTML = `<div class="rounded-md bg-red-50 p-3 text-sm text-red-700">${message}</div>`;
+      }
+
+      // Handle file upload
+      async function handleUpload(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(uploadForm);
+        
+        try {
+          const response = await fetchWithCredentials('/api/documents/upload', {
+            method: 'POST',
+            body: formData
+          });
+          
+          const data = await response.json();
+          
+          if (data.success) {
+            alert('Document uploaded successfully!');
+            uploadForm.reset();
+            loadDocuments(); // Reload the list
+          } else {
+            alert('Upload failed: ' + (data.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Upload error:', error);
+          alert('Upload failed: ' + error.message);
+        }
+      }
+
+      // Handle login
+      async function handleLogin(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(loginForm);
+        const data = Object.fromEntries(formData);
+        
+        try {
+          const response = await fetchWithCredentials('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            currentUser = result.user;
+            updateUIForAuthenticatedUser();
+            closeLoginModal();
+            loadDocuments();
+            alert('Login successful!');
+          } else {
+            alert('Login failed: ' + (result.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          alert('Login failed: ' + error.message);
+        }
+      }
+
+      // Handle register
+      async function handleRegister(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(registerForm);
+        const data = Object.fromEntries(formData);
+        
+        try {
+          const response = await fetchWithCredentials('/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            currentUser = result.user;
+            updateUIForAuthenticatedUser();
+            closeRegisterModal();
+            loadDocuments();
+            alert('Registration successful!');
+          } else {
+            alert('Registration failed: ' + (result.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Registration error:', error);
+          alert('Registration failed: ' + error.message);
+        }
+      }
+
+      // Handle logout
+      async function handleLogout() {
+        try {
+          await fetchWithCredentials('/api/auth/logout', { method: 'POST' });
+          currentUser = null;
+          updateUIForGuestUser();
+          alert('Logged out successfully!');
+        } catch (error) {
+          console.error('Logout error:', error);
+          alert('Logout failed: ' + error.message);
+        }
+      }
+
+      // Modal functions
+      function showLoginModal() {
+        loginModal.classList.remove('hidden');
+        registerModal.classList.add('hidden');
+      }
+
+      function closeLoginModal() {
+        loginModal.classList.add('hidden');
+      }
+
+      function showRegisterModal() {
+        registerModal.classList.remove('hidden');
+        loginModal.classList.add('hidden');
+      }
+
+      function closeRegisterModal() {
+        registerModal.classList.add('hidden');
+      }
+
+      // Make functions global for onclick handlers
+      window.showLoginModal = showLoginModal;
+      window.closeLoginModal = closeLoginModal;
+      window.showRegisterModal = showRegisterModal;
+      window.closeRegisterModal = closeRegisterModal;
+      window.searchDocument = searchDocument;
+      window.deleteDocument = deleteDocument;
+    </script>
+  </body>
+</html>
