@@ -4,7 +4,6 @@ const { Pool } = pkg;
 
 const CONNECTION_ENV_KEYS = [
   'PG_URL',
-  'DATABASE_URL',
   'POSTGRES_URL',
   'POSTGRESQL_URL',
   'PG_CONNECTION_STRING'
