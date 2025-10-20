@@ -84,9 +84,15 @@ export async function initializeDatabase() {
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         name VARCHAR(255) NOT NULL,
+        is_admin BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+
+    await executeQuery(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE
     `);
 
     await executeQuery(`

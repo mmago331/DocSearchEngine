@@ -27,21 +27,22 @@ router.post('/register', async (req, res) => {
       // Create new user
       const hashedPassword = hashPassword(password);
       const result = await executeQuery(
-        'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id',
+        'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name, is_admin',
         [email, hashedPassword, name]
       );
 
-      const userId = result[0].id;
-      
-      // Set session
-      req.session.userId = userId;
-      req.session.userEmail = email;
-      req.session.userName = name;
+      const user = result[0];
 
-      res.json({ 
-        success: true, 
+      // Set session
+      req.session.userId = user.id;
+      req.session.userEmail = user.email;
+      req.session.userName = user.name;
+      req.session.isAdmin = user.is_admin;
+
+      res.json({
+        success: true,
         message: 'User registered successfully',
-        user: { id: userId, email, name }
+        user: { id: user.id, email: user.email, name: user.name, isAdmin: user.is_admin }
       });
 
     } catch (error) {
@@ -85,7 +86,7 @@ router.post('/login', async (req, res) => {
     try {
       // Find user by email in database
       const users = await executeQuery(
-        'SELECT id, email, password_hash, name FROM users WHERE email = $1',
+        'SELECT id, email, password_hash, name, is_admin FROM users WHERE email = $1',
         [email]
       );
 
@@ -104,12 +105,12 @@ router.post('/login', async (req, res) => {
       req.session.userId = user.id;
       req.session.userEmail = user.email;
       req.session.userName = user.name;
-      req.session.isAdmin = false;
+      req.session.isAdmin = Boolean(user.is_admin);
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: 'Login successful',
-        user: { id: user.id, email: user.email, name: user.name, isAdmin: false }
+        user: { id: user.id, email: user.email, name: user.name, isAdmin: Boolean(user.is_admin) }
       });
 
     } catch (error) {
@@ -142,7 +143,7 @@ router.get('/me', (req, res) => {
         id: req.session.userId, 
         email: req.session.userEmail, 
         name: req.session.userName,
-        isAdmin: req.session.isAdmin || false
+        isAdmin: Boolean(req.session.isAdmin)
       }
     });
   } else {
