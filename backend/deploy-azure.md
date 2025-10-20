@@ -28,15 +28,6 @@ If you want to use the real database, you need to:
    - Go to "Configuration" > "Application settings"
    - Add: `PG_URL` = `postgresql://pchyekepax:maNE1123@docsearchengine-pg.postgres.database.azure.com:5432/docsearchengine?sslmode=require`
 
-3. **Disable Server-Side Builds** so Azure uses the artifact from CI:
-   - Still under "Configuration" > "Application settings"
-   - Add `SCM_DO_BUILD_DURING_DEPLOYMENT` with value `0`
-   - This stops Oryx from running `npm run build` during deployment because GitHub Actions already bundles everything into `backend.zip`
-
-4. **Confirm the GitHub Actions workflow**:
-   - The `.github/workflows/azure.yml` pipeline builds the frontend + backend, copies the built frontend into `backend/dist/public`, reinstalls production-only dependencies, zips the backend folder, and deploys `backend.zip`
-   - Make sure no other workflow or manual deployment targets the repo root—`azure.yml` should be the only deployment path
-
 ### Option 3: Use Public Database (Alternative)
 
 If you can make your PostgreSQL database publicly accessible:
