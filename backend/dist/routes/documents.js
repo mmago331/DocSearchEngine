@@ -6,9 +6,8 @@ import { spawn } from 'node:child_process';
 import { access, writeFile } from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 // pdf-parse will be imported dynamically when needed
-import { pool, isMockMode } from '../db/pg.js';
+import { pool } from '../db/pg.js';
 import { requireAuth } from '../middleware/auth.js';
-import { createMockDocument, deleteMockDocument, listMockDocumentsForUser, listMockPublicDocuments, } from '../mock/store.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const router = Router();
@@ -190,41 +189,13 @@ router.post('/', requireAuth, uploadMiddleware, async (req, res) => {
         }
         const { buffer, originalname, mimetype, size } = req.file;
         const isPublic = req.body.isPublic === 'true';
-        const rawUserId = req.session.userId;
-        const numericUserId = typeof rawUserId === 'number' ? rawUserId : Number(rawUserId);
+        const userId = req.session.userId;
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         const extension = path.extname(originalname);
         const filename = `upload-${uniqueSuffix}${extension}`;
         const uploadsDir = path.join(__dirname, '../../uploads');
         const filePath = path.join(uploadsDir, filename);
-        if (isMockMode) {
-            if (!Number.isFinite(numericUserId)) {
-                return res.status(400).json({ error: 'invalid_user_session' });
-            }
-            const content = mimetype === 'text/plain' ? buffer.toString('utf8') : '';
-            const document = createMockDocument({
-                userId: numericUserId,
-                originalName: originalname,
-                isPublic,
-                fileType: mimetype,
-                fileSize: size,
-                content,
-            });
-            return res.json({
-                success: true,
-                message: 'Document uploaded successfully (mock)',
-                document: {
-                    id: document.id,
-                    originalName: originalname,
-                    filename: document.filename,
-                    fileSize: size,
-                    fileType: mimetype,
-                    isPublic,
-                }
-            });
-        }
         await writeFile(filePath, buffer);
-        const userId = rawUserId;
         const { rows } = await pool.query('INSERT INTO documents (user_id, filename, original_name, file_path, file_size, file_type, is_public) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id', [userId, filename, originalname, filePath, size, mimetype, isPublic]);
         if (!rows.length) {
             throw new Error('Failed to save document metadata');
@@ -276,11 +247,6 @@ router.post('/', requireAuth, uploadMiddleware, async (req, res) => {
 router.get('/my-documents', requireAuth, async (req, res) => {
     try {
         const userId = req.session.userId;
-        if (isMockMode) {
-            const numericUserId = typeof userId === 'number' ? userId : Number(userId);
-            const documents = listMockDocumentsForUser(numericUserId);
-            return res.json({ success: true, documents });
-        }
         const { rows: documents } = await pool.query('SELECT id, original_name, file_size, file_type, is_public, created_at FROM documents WHERE user_id = $1 ORDER BY created_at DESC', [userId]);
         res.json({ success: true, documents });
     }
@@ -291,10 +257,6 @@ router.get('/my-documents', requireAuth, async (req, res) => {
 });
 router.get('/public', async (_req, res) => {
     try {
-        if (isMockMode) {
-            const documents = listMockPublicDocuments();
-            return res.json({ success: true, documents });
-        }
         const { rows: documents } = await pool.query(`SELECT d.id, d.original_name, d.file_size, d.file_type, d.created_at, u.name as uploader_name
          FROM documents d
          JOIN users u ON d.user_id = u.id
@@ -313,14 +275,6 @@ router.delete('/:id', requireAuth, async (req, res) => {
         const userId = req.session.userId;
         if (Number.isNaN(documentId)) {
             return res.status(400).json({ error: 'Invalid document id' });
-        }
-        if (isMockMode) {
-            const numericUserId = typeof userId === 'number' ? userId : Number(userId);
-            const removed = deleteMockDocument(documentId, numericUserId);
-            if (!removed) {
-                return res.status(404).json({ error: 'Document not found' });
-            }
-            return res.json({ success: true, message: 'Document deleted successfully (mock)' });
         }
         const { rows: documents } = await pool.query('SELECT id, file_path FROM documents WHERE id = $1 AND user_id = $2', [documentId, userId]);
         if (documents.length === 0) {
