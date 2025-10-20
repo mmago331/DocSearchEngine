@@ -31,6 +31,7 @@
           <li><a class="text-slate-600 hover:text-slate-900" href="/app.html">Search</a></li>
           <li><a class="text-slate-600 hover:text-slate-900" href="/library.html">My Library</a></li>
           <li><a class="text-slate-600 hover:text-slate-900" href="/explore.html">Explore</a></li>
+          <li><a id="admin-link" class="hidden text-slate-600 hover:text-slate-900" href="/admin.html">Admin</a></li>
           <li id="auth-section">
             <span id="user-info" class="hidden text-slate-600"></span>
             <button id="login-btn" class="text-slate-600 hover:text-slate-900">Login</button>
@@ -331,6 +332,7 @@
       const registerModal = document.getElementById('register-modal');
       const loginForm = document.getElementById('login-form');
       const registerForm = document.getElementById('register-form');
+      const adminLink = document.getElementById('admin-link');
 
       function fetchWithCredentials(url, options = {}) {
         const config = { ...options, credentials: 'include' };
@@ -371,6 +373,7 @@
         loginBtn.classList.add('hidden');
         logoutBtn.classList.remove('hidden');
         uploadSection.classList.remove('hidden');
+        updateAdminLinkVisibility();
       }
 
       // Update UI for guest user
@@ -380,6 +383,15 @@
         logoutBtn.classList.add('hidden');
         uploadSection.classList.add('hidden');
         currentUser = null;
+        updateAdminLinkVisibility();
+      }
+
+      function updateAdminLinkVisibility() {
+        if (currentUser?.isAdmin) {
+          adminLink.classList.remove('hidden');
+        } else {
+          adminLink.classList.add('hidden');
+        }
       }
 
       // Setup event listeners
