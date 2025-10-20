@@ -3,8 +3,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { pool } from '../db/pg.js';
+import { pool, isMockMode } from '../db/pg.js';
 import { hashPassword } from '../middleware/auth.js';
+import {
+  createMockUser,
+  deleteMockUser,
+  listMockUsers,
+  resetMockDocumentsFromSample,
+  updateMockUser,
+} from '../mock/store.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,6 +63,11 @@ function parseBoolean(value) {
 
 router.get('/users', requireAdmin, async (_req, res) => {
   try {
+    if (isMockMode) {
+      const users = listMockUsers().map(mapUserRow);
+      return res.json({ ok: true, users });
+    }
+
     const { rows } = await pool.query(
       `SELECT u.id, u.email, u.name, u.is_admin, u.created_at, u.updated_at,
               COUNT(d.id) AS document_count
@@ -89,6 +101,27 @@ router.post('/users', requireAdmin, async (req, res) => {
   }
 
   try {
+    if (isMockMode) {
+      try {
+        const parsedAdmin = parseBoolean(isAdmin);
+        const user = createMockUser({
+          email: normalizedEmail,
+          name: normalizedName,
+          password: normalizedPassword,
+          isAdmin: parsedAdmin,
+        });
+
+        return res.status(201).json({ ok: true, user: mapUserRow(user) });
+      } catch (error) {
+        if (error?.message === 'email_in_use') {
+          return res.status(400).json({ ok: false, error: 'email_in_use' });
+        }
+
+        console.error('Failed to create user (mock):', error);
+        return res.status(500).json({ ok: false, error: 'failed_to_create_user' });
+      }
+    }
+
     const { rows: existing } = await pool.query('SELECT id FROM users WHERE email = $1', [normalizedEmail]);
     if (existing.length > 0) {
       return res.status(400).json({ ok: false, error: 'email_in_use' });
@@ -167,6 +200,30 @@ router.patch('/users/:id', requireAdmin, async (req, res) => {
   params.push(userId);
 
   try {
+    if (isMockMode) {
+      try {
+        const updated = updateMockUser(userId, {
+          email,
+          name,
+          password,
+          isAdmin: isAdmin !== undefined ? parseBoolean(isAdmin) : undefined,
+        });
+
+        if (!updated) {
+          return res.status(404).json({ ok: false, error: 'user_not_found' });
+        }
+
+        return res.json({ ok: true, user: mapUserRow(updated) });
+      } catch (error) {
+        if (error?.message === 'email_in_use') {
+          return res.status(400).json({ ok: false, error: 'email_in_use' });
+        }
+
+        console.error('Failed to update user (mock):', error);
+        return res.status(500).json({ ok: false, error: 'failed_to_update_user' });
+      }
+    }
+
     const { rows } = await pool.query(
       `UPDATE users
           SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP
@@ -200,6 +257,14 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
   }
 
   try {
+    if (isMockMode) {
+      if (!deleteMockUser(userId)) {
+        return res.status(404).json({ ok: false, error: 'user_not_found' });
+      }
+
+      return res.json({ ok: true });
+    }
+
     const { rows } = await pool.query('DELETE FROM users WHERE id = $1 RETURNING id', [userId]);
     if (rows.length === 0) {
       return res.status(404).json({ ok: false, error: 'user_not_found' });
@@ -219,6 +284,11 @@ router.post('/seed', requireAdmin, async (req, res) => {
     let docs = [];
 
     if (source === 'sample') {
+      if (isMockMode) {
+        const inserted = resetMockDocumentsFromSample();
+        return res.json({ ok: true, inserted });
+      }
+
       const file = path.join(__dirname, '..', '..', 'seed', 'sample.json');
       const raw = fs.readFileSync(file, 'utf8');
       docs = JSON.parse(raw);
