@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { pool } from '../db/pg.js';
+import { pool, isMockMode } from '../db/pg.js';
+import { searchMockDocuments } from '../mock/store.js';
 const router = Router();
 // GET /api/search?q=...&filter=...
 router.get('/search', async (req, res) => {
@@ -8,6 +9,11 @@ router.get('/search', async (req, res) => {
         const filter = String(req.query.filter || 'all').toLowerCase();
         if (!q) {
             return res.json({ ok: true, q, filter, count: 0, results: [] });
+        }
+        if (isMockMode) {
+            const userId = req.session?.userId ?? null;
+            const results = searchMockDocuments({ query: q, filter, userId });
+            return res.json({ ok: true, q, filter, count: results.length, results });
         }
         try {
             let query = '';

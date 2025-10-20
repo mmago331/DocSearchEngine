@@ -7,7 +7,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import session from "express-session";
-import { ensureDbReady } from "./db/pg.js";
+import { ensureDbReady, isMockMode } from "./db/pg.js";
 import { initializeDatabase } from "./db/schema.js";
 import adminRouter from "./routes/admin.js";
 import searchRouter from "./routes/search.js";
@@ -50,8 +50,12 @@ app.use("/api/admin", adminRouter);
 app.use("/api", searchRouter);
 app.get("/api/health", async (_req, res) => {
     try {
+        if (isMockMode) {
+            res.json({ ok: true, mode: "mock" });
+            return;
+        }
         await ensureDbReady();
-        res.json({ ok: true });
+        res.json({ ok: true, mode: "database" });
     }
     catch (error) {
         console.error("Health check failed", error);
@@ -74,13 +78,23 @@ app.use((err, req, res, next) => {
 const port = Number(process.env.PORT ?? 8080);
 (async () => {
     try {
-        await ensureDbReady();
-        await initializeDatabase();
+        if (!isMockMode) {
+            await ensureDbReady();
+            await initializeDatabase();
+        }
+        else {
+            console.warn("Mock mode enabled - skipping database initialization");
+        }
         app.listen(port, () => console.log(`api on :${port}`));
     }
     catch (e) {
-        console.error("Failed to connect to PG via PG_URL", e);
-        process.exit(1);
+        if (isMockMode) {
+            console.error("Unexpected startup error while in mock mode", e);
+        }
+        else {
+            console.error("Failed to connect to PG via PG_URL", e);
+            process.exit(1);
+        }
     }
 })();
 export default app;

@@ -1,6 +1,7 @@
 import { Router } from 'express';
-import { pool } from '../db/pg.js';
+import { pool, isMockMode } from '../db/pg.js';
 import { hashPassword, comparePassword } from '../middleware/auth.js';
+import { getMockUserByEmail, registerMockUser } from '../mock/store.js';
 
 const router = Router();
 
@@ -14,6 +15,21 @@ router.post('/register', async (req, res) => {
     }
 
     try {
+      if (isMockMode) {
+        const user = registerMockUser({ email, password, name });
+
+        req.session.userId = user.id;
+        req.session.userEmail = user.email;
+        req.session.userName = user.name;
+        req.session.isAdmin = Boolean(user.is_admin);
+
+        return res.json({
+          success: true,
+          message: 'User registered successfully (mock)',
+          user: { id: user.id, email: user.email, name: user.name, isAdmin: Boolean(user.is_admin) }
+        });
+      }
+
       const { rows: existingUsers } = await pool.query(
         'SELECT id FROM users WHERE email = $1',
         [email]
@@ -45,6 +61,10 @@ router.post('/register', async (req, res) => {
       });
 
     } catch (error) {
+      if (isMockMode && error.message === 'email_in_use') {
+        return res.status(400).json({ error: 'User already exists' });
+      }
+
       console.error('Registration error:', error);
       res.status(500).json({ error: 'Registration failed' });
     }
@@ -83,6 +103,24 @@ router.post('/login', async (req, res) => {
     }
 
     try {
+      if (isMockMode) {
+        const user = getMockUserByEmail(email);
+        if (!user || !comparePassword(password, user.passwordHash)) {
+          return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        req.session.userId = user.id;
+        req.session.userEmail = user.email;
+        req.session.userName = user.name;
+        req.session.isAdmin = Boolean(user.isAdmin);
+
+        return res.json({
+          success: true,
+          message: 'Login successful',
+          user: { id: user.id, email: user.email, name: user.name, isAdmin: Boolean(user.isAdmin) }
+        });
+      }
+
       // Find user by email in database
       const { rows: users } = await pool.query(
         'SELECT id, email, password_hash, name, is_admin FROM users WHERE email = $1',
@@ -94,7 +132,7 @@ router.post('/login', async (req, res) => {
       }
 
       const user = users[0];
-      
+
       // Verify password
       if (!comparePassword(password, user.password_hash)) {
         return res.status(401).json({ error: 'Invalid credentials' });
