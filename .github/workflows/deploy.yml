@@ -1,0 +1,68 @@
+name: deploy (prod)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Build the frontend, then the backend (produces backend/dist)
+      - name: Build frontend
+        run: |
+          npm --prefix frontend ci
+          npm --prefix frontend run build
+
+      - name: Build backend
+        run: |
+          npm --prefix backend ci
+          npm --prefix backend run build
+
+      # Put the built UI under backend/dist/public so the server can serve it
+      - name: Bundle UI into backend
+        run: |
+          node -e "fs=require('fs');p='backend/dist/public';fs.mkdirSync(p,{recursive:true});fs.cpSync('frontend/dist',p,{recursive:true});"
+
+      # Reinstall backend with *runtime* deps only to shrink the bundle
+      - name: Install backend (prod only)
+        working-directory: backend
+        run: |
+          rm -rf node_modules
+          npm ci --omit=dev || npm install --omit=dev --no-audit --no-fund
+
+      # Create the deployable artifact
+      - name: Zip backend
+        run: |
+          cd backend
+          zip -r ../backend.zip package.json package-lock.json dist node_modules server.js public
+          cd ..
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_449C2286F0BB4D8C87DDDFD5D1F23817 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B973AA95BDDB4C49A6975085CA622576 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_08053C01490A49349B359E2FE8EA0628 }}
+
+      - name: Deploy to Azure Web App (OIDC)
+        id: deploy_oidc
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: docsearchengine-amd3dvf7hch0cnax
+          package: backend.zip
